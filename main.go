@@ -3,12 +3,12 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"os"
 
+	errs "github.com/ab-dek/golox/errors"
 	sc "github.com/ab-dek/golox/scanner"
 )
-
-var hadError bool
 
 func main() {
 	args := os.Args
@@ -31,7 +31,7 @@ func runFile(scriptPath string) {
 
 	run(string(source))
 
-	if hadError {
+	if errs.HadError {
 		os.Exit(65)
 	}
 }
@@ -46,7 +46,10 @@ func runPrompt() {
 		}
 		line := scanner.Text()
 		run(line)
-		hadError = false
+		errs.HadError = false
+	}
+	if err := scanner.Err(); err != nil {
+		log.Printf("error reading input: %v", err)
 	}
 }
 
@@ -57,12 +60,4 @@ func run(source string) {
 	for token := range tokens {
 		fmt.Println(token)
 	}
-}
-
-func Error(line int, message string) {
-	Report(line, "", message)
-}
-
-func Report(line int, where string, message string) {
-	fmt.Fprintf(os.Stderr, "[line %d] Error %s: %s\n", line, where, message)
 }
