@@ -102,6 +102,8 @@ func (s *Scanner) scanToken() {
 			for s.peek() != '\n' && !s.isAtEnd() {
 				s.advance()
 			}
+		} else if s.match('*') {
+			s.multiLineComment()
 		} else {
 			s.addToken(SLASH)
 		}
@@ -230,4 +232,24 @@ func (s *Scanner) identifier() {
 
 func (s *Scanner) isAlphaNumeric(c byte) bool {
 	return s.isDigit(c) || s.isAlpha(c)
+}
+
+func (s *Scanner) multiLineComment() {
+	for !s.isAtEnd() {
+		if s.peek() == '*' && s.peekNext() == '/' {
+			break
+		}
+		if s.peek() == '\n' {
+			s.line++
+		}
+		s.advance()
+	}
+
+	if s.isAtEnd() {
+		errs.Error(s.line, "unterminated multi-line comment.")
+	}
+
+	// consuming closing */ tags
+	s.advance()
+	s.advance()
 }
