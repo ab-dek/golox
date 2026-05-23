@@ -13,6 +13,7 @@ const (
 	DOT
 	MINUS
 	PLUS
+	MODULO
 	SEMICOLON
 	SLASH
 	STAR
@@ -75,6 +76,8 @@ func (t TokenType) String() string {
 		return "MINUS"
 	case PLUS:
 		return "PLUS"
+	case MODULO:
+		return "MODULO"
 	case SEMICOLON:
 		return "SEMICOLON"
 	case SLASH:

@@ -7,6 +7,25 @@ import (
 	errs "github.com/ab-dek/golox/errors"
 )
 
+var keywords = map[string]TokenType{
+	"and":    AND,
+	"class":  CLASS,
+	"else":   ELSE,
+	"false":  FALSE,
+	"for":    FOR,
+	"fun":    FUN,
+	"if":     IF,
+	"nil":    NIL,
+	"or":     OR,
+	"print":  PRINT,
+	"return": RETURN,
+	"super":  SUPER,
+	"this":   THIS,
+	"true":   TRUE,
+	"var":    VAR,
+	"while":  WHILE,
+}
+
 type Scanner struct {
 	source               string
 	tokens               []Token
@@ -97,6 +116,8 @@ func (s *Scanner) scanToken() {
 	default:
 		if s.isDigit(c) {
 			s.number()
+		} else if s.isAlpha(c) {
+			s.identifier()
 		} else {
 			errs.Error(s.line, fmt.Sprintf("unexpected character: \"%s\"", string(c)))
 		}
@@ -186,4 +207,27 @@ func (s *Scanner) peekNext() byte {
 	}
 
 	return s.source[s.current+1]
+}
+
+func (s *Scanner) isAlpha(c byte) bool {
+	return (c >= 'a' && c <= 'z') ||
+		(c >= 'A' && c <= 'Z') ||
+		c == '_'
+}
+
+func (s *Scanner) identifier() {
+	for s.isAlphaNumeric(s.peek()) {
+		s.advance()
+	}
+
+	text := s.source[s.start:s.current]
+	tokenType := IDENTIFIER
+	if t, ok := keywords[text]; ok {
+		tokenType = t
+	}
+	s.addToken(tokenType)
+}
+
+func (s *Scanner) isAlphaNumeric(c byte) bool {
+	return s.isDigit(c) || s.isAlpha(c)
 }
