@@ -54,10 +54,11 @@ func runPrompt() {
 }
 
 func run(source string) {
+	fmt.Println("lexing source code: ", source)
 	scanner := sc.NewScanner(source)
 	tokens := scanner.ScanTokens()
 
-	for token := range tokens {
-		fmt.Println(token)
+	for _, token := range tokens {
+		fmt.Println(token.ToString())
 	}
 }
