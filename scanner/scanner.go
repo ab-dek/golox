@@ -2,6 +2,7 @@ package scanner
 
 import (
 	"fmt"
+	"strconv"
 
 	errs "github.com/ab-dek/golox/errors"
 )
@@ -94,7 +95,11 @@ func (s *Scanner) scanToken() {
 	case '"':
 		s.string()
 	default:
-		errs.Error(s.line, fmt.Sprintf("unexpected character: \"%s\"", string(c)))
+		if s.isDigit(c) {
+			s.number()
+		} else {
+			errs.Error(s.line, fmt.Sprintf("unexpected character: \"%s\"", string(c)))
+		}
 	}
 }
 
@@ -150,4 +155,35 @@ func (s *Scanner) string() {
 	// trim the surrouding quotes
 	value := s.source[s.start+1 : s.current-1]
 	s.addTokenWithLiteral(STRING, value)
+}
+
+func (s *Scanner) isDigit(c byte) bool {
+	return c >= '0' && c <= '9'
+}
+
+func (s *Scanner) number() {
+	for s.isDigit(s.peek()) {
+		s.advance()
+	}
+
+	// look for a fractional part
+	if s.peek() == '.' && s.isDigit(s.peekNext()) {
+		// consume the .
+		s.advance()
+		for s.isDigit(s.peek()) {
+			s.advance()
+		}
+	}
+
+	value := s.source[s.start:s.current]
+	floatValue, _ := strconv.ParseFloat(value, 64)
+	s.addTokenWithLiteral(NUMBER, floatValue)
+}
+
+func (s *Scanner) peekNext() byte {
+	if s.current+1 >= len(s.source) {
+		return 0
+	}
+
+	return s.source[s.current+1]
 }
