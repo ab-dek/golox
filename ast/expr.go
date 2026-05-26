@@ -3,47 +3,47 @@ package ast
 import t "github.com/ab-dek/golox/token"
 
 type Expr interface {
-	accept(visitor ExprVisitor)
+	Accept(visitor ExprVisitor) any
 }
 
 type ExprVisitor interface {
-	visitBinary(expr *Binary)
-	visitGrouping(expr *Grouping)
-	visitLiteral(expr *Literal)
-	visitUnary(expr *Unary)
+	visitBinary(expr *Binary) any
+	visitGrouping(expr *Grouping) any
+	visitLiteral(expr *Literal) any
+	visitUnary(expr *Unary) any
 }
 
 type Binary struct {
-	left     Expr
-	operator t.Token
-	right    Expr
+	Left     Expr
+	Operator t.Token
+	Right    Expr
 }
 
-func (b *Binary) accept(visitor ExprVisitor) {
-	visitor.visitBinary(b)
+func (b *Binary) Accept(visitor ExprVisitor) any {
+	return visitor.visitBinary(b)
 }
 
 type Grouping struct {
-	expresssion Expr
+	Expresssion Expr
 }
 
-func (g *Grouping) accept(visitor ExprVisitor) {
-	visitor.visitGrouping(g)
+func (g *Grouping) Accept(visitor ExprVisitor) any {
+	return visitor.visitGrouping(g)
 }
 
 type Literal struct {
-	value any
+	Value any
 }
 
-func (l *Literal) accept(visitor ExprVisitor) {
-	visitor.visitLiteral(l)
+func (l *Literal) Accept(visitor ExprVisitor) any {
+	return visitor.visitLiteral(l)
 }
 
 type Unary struct {
-	operator t.Token
-	rigth    Expr
+	Operator t.Token
+	Right    Expr
 }
 
-func (u *Unary) accept(visitor ExprVisitor) {
-	visitor.visitUnary(u)
+func (u *Unary) Accept(visitor ExprVisitor) any {
+	return visitor.visitUnary(u)
 }
