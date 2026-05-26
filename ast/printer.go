@@ -12,7 +12,7 @@ func NewPrinter() *printer {
 }
 
 func (p *printer) Print(expr Expr) string {
-	return fmt.Sprintf("%v", expr.Accept(p))
+	return expr.Accept(p).(string)
 }
 
 func (p *printer) visitBinary(expr *Binary) any {
@@ -27,7 +27,7 @@ func (p *printer) visitLiteral(expr *Literal) any {
 	if expr.Value == nil {
 		return "nil"
 	}
-	return expr.Value
+	return fmt.Sprintf("%v", expr.Value)
 }
 
 func (p *printer) visitUnary(expr *Unary) any {

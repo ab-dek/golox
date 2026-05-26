@@ -21,4 +21,7 @@ func main() {
 
 	printer := e.NewPrinter()
 	fmt.Println(printer.Print(expr))
+
+	rpnPrinter := e.NewRPN()
+	fmt.Println(rpnPrinter.PrintRPN(expr))
 }
