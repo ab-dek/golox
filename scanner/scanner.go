@@ -122,7 +122,7 @@ func (s *Scanner) scanToken() {
 		} else if s.isAlpha(c) {
 			s.identifier()
 		} else {
-			errs.Error(s.line, fmt.Sprintf("unexpected character: \"%s\"", string(c)))
+			errs.LexError(s.line, fmt.Sprintf("unexpected character: \"%s\"", string(c)))
 		}
 	}
 }
@@ -170,7 +170,7 @@ func (s *Scanner) string() {
 	}
 
 	if s.isAtEnd() {
-		errs.Error(s.line, "unterminated string.")
+		errs.LexError(s.line, "unterminated string.")
 	}
 
 	// the closing "
@@ -247,7 +247,7 @@ func (s *Scanner) multiLineComment() {
 	}
 
 	if s.isAtEnd() {
-		errs.Error(s.line, "unterminated multi-line comment.")
+		errs.LexError(s.line, "unterminated multi-line comment.")
 	}
 
 	// consuming closing */ tags

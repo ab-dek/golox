@@ -3,12 +3,22 @@ package errors
 import (
 	"fmt"
 	"os"
+
+	t "github.com/ab-dek/golox/token"
 )
 
 var HadError bool
 
-func Error(line int, message string) {
+func LexError(line int, message string) {
 	Report(line, "", message)
+}
+
+func ParseError(token t.Token, message string) {
+	if token.TokenType == t.EOF {
+		Report(token.Line, " at end", message)
+	} else {
+		Report(token.Line, " at '"+token.Lexeme+"'", message)
+	}
 }
 
 func Report(line int, where string, message string) {

@@ -2,6 +2,7 @@ package parser
 
 import (
 	e "github.com/ab-dek/golox/ast"
+	errs "github.com/ab-dek/golox/errors"
 	t "github.com/ab-dek/golox/token"
 )
 
@@ -107,7 +108,7 @@ func (p *Parser) primary() e.Expr {
 		return e.NewLiteral(p.previous().Literal)
 	case p.match(t.LEFT_PAREN):
 		expr := p.expression()
-		// consume(t.RIGHT_PAREN, "Expect ')' after expression.")
+		p.consume(t.RIGHT_PAREN, "Expect ')' after expression.")
 		return e.NewGrouping(expr)
 	}
 	return nil
@@ -147,4 +148,35 @@ func (p *Parser) peek() t.Token {
 
 func (p *Parser) previous() t.Token {
 	return p.tokens[p.current-1]
+}
+
+func (p *Parser) consume(tokenType t.TokenType, message string) t.Token {
+	if p.check(tokenType) {
+		return p.advance()
+	}
+	p.error(p.peek(), message)
+	return t.Token{}
+}
+
+type parseError struct{}
+
+func (p *Parser) error(token t.Token, message string) {
+	errs.ParseError(token, message)
+	panic(parseError{})
+}
+
+func (p *Parser) synchronize() {
+	p.advance()
+	for !p.IsAtEnd() {
+		if p.previous().TokenType == t.SEMICOLON {
+			return
+		}
+
+		switch p.peek().TokenType {
+		case t.CLASS, t.FUN, t.VAR, t.FOR, t.IF, t.WHILE, t.PRINT, t.RETURN:
+			return
+		}
+
+		p.advance()
+	}
 }
