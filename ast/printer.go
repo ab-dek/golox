@@ -20,7 +20,7 @@ func (p *printer) visitBinary(expr *Binary) any {
 }
 
 func (p *printer) visitGrouping(expr *Grouping) any {
-	return p.parenthesize("group", expr.Expresssion)
+	return p.parenthesize("group", expr.Expression)
 }
 
 func (p *printer) visitLiteral(expr *Literal) any {

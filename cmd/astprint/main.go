@@ -15,7 +15,7 @@ func main() {
 		},
 		Operator: t.Token{TokenType: t.STAR, Lexeme: "*", Literal: nil, Line: 1},
 		Right: &e.Grouping{
-			Expresssion: &e.Literal{Value: 45.67},
+			Expression: &e.Literal{Value: 45.67},
 		},
 	}
 

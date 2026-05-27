@@ -22,7 +22,7 @@ func (r *RPN) visitBinary(expr *Binary) any {
 }
 
 func (r *RPN) visitGrouping(expr *Grouping) any {
-	return expr.Expresssion.Accept(r)
+	return expr.Expression.Accept(r)
 }
 
 func (r *RPN) visitLiteral(expr *Literal) any {
