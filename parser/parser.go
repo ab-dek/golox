@@ -34,6 +34,10 @@ func NewParser(tokens []t.Token) *Parser {
 	}
 }
 
+func (p *Parser) Parse() e.Expr {
+	return p.expression()
+}
+
 func (p *Parser) expression() e.Expr {
 	return p.equality()
 }
@@ -111,6 +115,7 @@ func (p *Parser) primary() e.Expr {
 		p.consume(t.RIGHT_PAREN, "Expect ')' after expression.")
 		return e.NewGrouping(expr)
 	}
+	p.error(p.peek(), "Expect expression.")
 	return nil
 }
 

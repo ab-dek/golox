@@ -6,7 +6,9 @@ import (
 	"log"
 	"os"
 
+	e "github.com/ab-dek/golox/ast"
 	errs "github.com/ab-dek/golox/errors"
+	p "github.com/ab-dek/golox/parser"
 	sc "github.com/ab-dek/golox/scanner"
 )
 
@@ -54,11 +56,17 @@ func runPrompt() {
 }
 
 func run(source string) {
-	fmt.Println("lexing source code: ", source)
+	fmt.Println("lexing source code... ")
 	scanner := sc.NewScanner(source)
 	tokens := scanner.ScanTokens()
 
-	for _, token := range tokens {
-		fmt.Println(token.ToString())
-	}
+	// for _, token := range tokens {
+	// 	fmt.Println(token.ToString())
+	// }
+	fmt.Println("parsing...")
+	parser := p.NewParser(tokens)
+	expr := parser.Parse()
+
+	printer := e.NewPrinter()
+	fmt.Println(printer.Print(expr))
 }

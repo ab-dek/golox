@@ -1,4 +1,4 @@
-var a = 1;
+/* var a = 1;
 while (a < 10) {
     print a;
     a = a + 1;
@@ -7,8 +7,10 @@ while (a < 10) {
 "multi-line
 string"
 
-/* fun printSum(a, b) {
+fun printSum(a, b) {
   print a + b;
 } */
 
 // testing
+
+12+(25 + 2) * (-12)-11
