@@ -13,6 +13,7 @@ type ExprVisitor interface {
 	visitGrouping(expr *Grouping) any
 	visitLiteral(expr *Literal) any
 	visitUnary(expr *Unary) any
+	visitTernary(expr *Ternary) any
 }
 
 type Binary struct {
@@ -75,4 +76,24 @@ func NewUnary(operator t.Token, right Expr) *Unary {
 
 func (u *Unary) Accept(visitor ExprVisitor) any {
 	return visitor.visitUnary(u)
+}
+
+type Ternary struct {
+	Condition Expr
+	Question  t.Token
+	Then      Expr
+	Else      Expr
+}
+
+func NewTernary(condition, thenBranch, elseBranch Expr, question t.Token) *Ternary {
+	return &Ternary{
+		Condition: condition,
+		Then:      thenBranch,
+		Else:      elseBranch,
+		Question:  question,
+	}
+}
+
+func (t *Ternary) Accept(visitor ExprVisitor) any {
+	return visitor.visitTernary(t)
 }

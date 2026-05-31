@@ -49,3 +49,7 @@ func (p *printer) parenthesize(name string, exprs ...Expr) string {
 
 	return builder.String()
 }
+
+func (p *printer) visitTernary(expr *Ternary) any {
+	return p.parenthesize("? :", expr.Condition, expr.Then, expr.Else)
+}

@@ -9,7 +9,8 @@ import (
 /*
 expression grammmer:
 
-expression→ equality ;
+expression→ conditional ;
+conditional→ equality ( "?" expression ":" conditional )? ;
 equality→ comparison ( ( "!=" | "==" ) comparison )* ;
 comparison→ term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 term→ factor ( ( "-" | "+" ) factor )* ;
@@ -39,7 +40,21 @@ func (p *Parser) Parse() e.Expr {
 }
 
 func (p *Parser) expression() e.Expr {
-	return p.equality()
+	return p.conditional()
+}
+
+func (p *Parser) conditional() e.Expr {
+	expr := p.equality()
+	if p.match(t.QUESTION_MARK) {
+		questionMark := p.previous()
+		thenBranch := p.expression()
+
+		p.consume(t.COLON, "Expect ':' after then-branch of conditional operator.")
+
+		elseBranch := p.conditional()
+		expr = e.NewTernary(expr, thenBranch, elseBranch, questionMark)
+	}
+	return expr
 }
 
 func (p *Parser) equality() e.Expr {

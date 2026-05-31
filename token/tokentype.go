@@ -18,6 +18,9 @@ const (
 	SLASH
 	STAR
 
+	QUESTION_MARK
+	COLON
+
 	// One or two character tokens.
 	BANG
 	BANG_EQUAL
@@ -84,6 +87,10 @@ func (t TokenType) String() string {
 		return "SLASH"
 	case STAR:
 		return "STAR"
+	case QUESTION_MARK:
+		return "QUESTION_MARK"
+	case COLON:
+		return "COLON"
 	case BANG:
 		return "BANG"
 	case BANG_EQUAL:

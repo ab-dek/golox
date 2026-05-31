@@ -35,3 +35,10 @@ func (r *RPN) visitUnary(expr *Unary) any {
 
 	return fmt.Sprintf("%s %s", right, operator)
 }
+
+func (r *RPN) visitTernary(expr *Ternary) any {
+	condition := expr.Condition.Accept(r).(string)
+	then := expr.Then.Accept(r).(string)
+	Else := expr.Else.Accept(r).(string)
+	return fmt.Sprintf("%s %s %s", condition, then, Else)
+}
