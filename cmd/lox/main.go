@@ -8,6 +8,7 @@ import (
 
 	e "github.com/ab-dek/golox/ast"
 	errs "github.com/ab-dek/golox/errors"
+	i "github.com/ab-dek/golox/interpreter"
 	p "github.com/ab-dek/golox/parser"
 	sc "github.com/ab-dek/golox/scanner"
 )
@@ -35,6 +36,9 @@ func runFile(scriptPath string) {
 
 	if errs.HadError {
 		os.Exit(65)
+	}
+	if errs.HadRuntimeError {
+		os.Exit(70)
 	}
 }
 
@@ -69,4 +73,8 @@ func run(source string) {
 
 	printer := e.NewPrinter()
 	fmt.Println(printer.Print(expr))
+
+	fmt.Println("interpreting...")
+	interpreter := i.NewInterpreter()
+	interpreter.Interpret(expr)
 }

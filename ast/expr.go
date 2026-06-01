@@ -9,11 +9,11 @@ type Expr interface {
 }
 
 type ExprVisitor interface {
-	visitBinary(expr *Binary) any
-	visitGrouping(expr *Grouping) any
-	visitLiteral(expr *Literal) any
-	visitUnary(expr *Unary) any
-	visitTernary(expr *Ternary) any
+	VisitBinary(expr *Binary) any
+	VisitGrouping(expr *Grouping) any
+	VisitLiteral(expr *Literal) any
+	VisitUnary(expr *Unary) any
+	VisitTernary(expr *Ternary) any
 }
 
 type Binary struct {
@@ -31,7 +31,7 @@ func NewBinary(left, right Expr, operator t.Token) *Binary {
 }
 
 func (b *Binary) Accept(visitor ExprVisitor) any {
-	return visitor.visitBinary(b)
+	return visitor.VisitBinary(b)
 }
 
 type Grouping struct {
@@ -45,7 +45,7 @@ func NewGrouping(expr Expr) *Grouping {
 }
 
 func (g *Grouping) Accept(visitor ExprVisitor) any {
-	return visitor.visitGrouping(g)
+	return visitor.VisitGrouping(g)
 }
 
 type Literal struct {
@@ -59,7 +59,7 @@ func NewLiteral(value any) *Literal {
 }
 
 func (l *Literal) Accept(visitor ExprVisitor) any {
-	return visitor.visitLiteral(l)
+	return visitor.VisitLiteral(l)
 }
 
 type Unary struct {
@@ -75,7 +75,7 @@ func NewUnary(operator t.Token, right Expr) *Unary {
 }
 
 func (u *Unary) Accept(visitor ExprVisitor) any {
-	return visitor.visitUnary(u)
+	return visitor.VisitUnary(u)
 }
 
 type Ternary struct {
@@ -95,5 +95,5 @@ func NewTernary(condition, thenBranch, elseBranch Expr, question t.Token) *Terna
 }
 
 func (t *Ternary) Accept(visitor ExprVisitor) any {
-	return visitor.visitTernary(t)
+	return visitor.VisitTernary(t)
 }

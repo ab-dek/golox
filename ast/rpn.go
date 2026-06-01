@@ -13,7 +13,7 @@ func (r *RPN) PrintRPN(expr Expr) string {
 	return expr.Accept(r).(string)
 }
 
-func (r *RPN) visitBinary(expr *Binary) any {
+func (r *RPN) VisitBinary(expr *Binary) any {
 	left := expr.Left.Accept(r).(string)
 	right := expr.Right.Accept(r).(string)
 	operator := expr.Operator.Lexeme
@@ -21,22 +21,22 @@ func (r *RPN) visitBinary(expr *Binary) any {
 	return fmt.Sprintf("%s %s %s", left, right, operator)
 }
 
-func (r *RPN) visitGrouping(expr *Grouping) any {
+func (r *RPN) VisitGrouping(expr *Grouping) any {
 	return expr.Expression.Accept(r)
 }
 
-func (r *RPN) visitLiteral(expr *Literal) any {
+func (r *RPN) VisitLiteral(expr *Literal) any {
 	return fmt.Sprintf("%v", expr.Value)
 }
 
-func (r *RPN) visitUnary(expr *Unary) any {
+func (r *RPN) VisitUnary(expr *Unary) any {
 	right := expr.Right.Accept(r).(string)
 	operator := expr.Operator.Lexeme
 
 	return fmt.Sprintf("%s %s", right, operator)
 }
 
-func (r *RPN) visitTernary(expr *Ternary) any {
+func (r *RPN) VisitTernary(expr *Ternary) any {
 	condition := expr.Condition.Accept(r).(string)
 	then := expr.Then.Accept(r).(string)
 	Else := expr.Else.Accept(r).(string)

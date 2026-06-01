@@ -8,6 +8,7 @@ import (
 )
 
 var HadError bool
+var HadRuntimeError bool
 
 func LexError(line int, message string) {
 	Report(line, "", message)
@@ -23,4 +24,9 @@ func ParseError(token t.Token, message string) {
 
 func Report(line int, where string, message string) {
 	fmt.Fprintf(os.Stderr, "[line %d] Error %s: %s\n", line, where, message)
+}
+
+func RuntimeError(token t.Token, message string) {
+	Report(token.Line, "", message)
+	HadRuntimeError = true
 }
