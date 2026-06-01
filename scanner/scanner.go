@@ -70,6 +70,8 @@ func (s *Scanner) scanToken() {
 		s.addToken(t.MINUS)
 	case '+':
 		s.addToken(t.PLUS)
+	case '%':
+		s.addToken(t.MODULO)
 	case ';':
 		s.addToken(t.SEMICOLON)
 	case '*':

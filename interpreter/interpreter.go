@@ -2,6 +2,7 @@ package interpreter
 
 import (
 	"fmt"
+	"math"
 
 	e "github.com/ab-dek/golox/ast"
 	errs "github.com/ab-dek/golox/errors"
@@ -63,10 +64,18 @@ func (i *interpreter) VisitBinary(expr *e.Binary) any {
 		errs.RuntimeError(expr.Operator, "Operand must be a number.")
 		panic(runtimeError{})
 	case t.MODULO:
-		// TODO: implement me
-		return nil
+		i.checkNumberOperands(expr.Operator, left, right)
+		if right.(float64) == 0 {
+			errs.RuntimeError(expr.Operator, "Cannot modulo by 0.")
+			panic(runtimeError{})
+		}
+		return math.Mod(left.(float64), right.(float64))
 	case t.SLASH:
 		i.checkNumberOperands(expr.Operator, left, right)
+		if right.(float64) == 0 {
+			errs.RuntimeError(expr.Operator, "Cannot divide by 0.")
+			panic(runtimeError{})
+		}
 		return left.(float64) / right.(float64)
 	case t.STAR:
 		i.checkNumberOperands(expr.Operator, left, right)

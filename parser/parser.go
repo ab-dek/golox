@@ -96,7 +96,7 @@ func (p *Parser) term() e.Expr {
 func (p *Parser) factor() e.Expr {
 	expr := p.unary()
 
-	for p.match(t.STAR, t.SLASH) {
+	for p.match(t.STAR, t.SLASH, t.MODULO) {
 		operator := p.previous()
 		right := p.unary()
 		expr = e.NewBinary(expr, right, operator)
