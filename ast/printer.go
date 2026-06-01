@@ -34,6 +34,10 @@ func (p *printer) visitUnary(expr *Unary) any {
 	return p.parenthesize(expr.Operator.Lexeme, expr.Right)
 }
 
+func (p *printer) visitTernary(expr *Ternary) any {
+	return p.parenthesize("? :", expr.Condition, expr.Then, expr.Else)
+}
+
 func (p *printer) parenthesize(name string, exprs ...Expr) string {
 	var builder strings.Builder
 
@@ -48,8 +52,4 @@ func (p *printer) parenthesize(name string, exprs ...Expr) string {
 	builder.WriteString(")")
 
 	return builder.String()
-}
-
-func (p *printer) visitTernary(expr *Ternary) any {
-	return p.parenthesize("? :", expr.Condition, expr.Then, expr.Else)
 }
