@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"math"
 
-	e "github.com/ab-dek/golox/ast"
+	"github.com/ab-dek/golox/ast"
 	errs "github.com/ab-dek/golox/errors"
 	t "github.com/ab-dek/golox/token"
 )
@@ -15,16 +15,32 @@ func NewInterpreter() *interpreter {
 	return &interpreter{}
 }
 
-func (i *interpreter) Interpret(expr e.Expr) {
-	value := i.evaluate(expr)
-	fmt.Printf("%v\n", value)
+func (i *interpreter) Interpret(stmts []ast.Stmt) {
+	for _, stmt := range stmts {
+		i.execute(stmt)
+	}
 }
 
-func (i *interpreter) evaluate(expr e.Expr) any {
+func (i *interpreter) execute(stmt ast.Stmt) {
+	stmt.Accept(i)
+}
+
+func (i *interpreter) evaluate(expr ast.Expr) any {
 	return expr.Accept(i)
 }
 
-func (i *interpreter) VisitBinary(expr *e.Binary) any {
+func (i *interpreter) VisitExpr(stmt *ast.ExprStmt) any {
+	i.evaluate(stmt.Expr)
+	return nil
+}
+
+func (i *interpreter) VisitPrint(stmt *ast.PrintStmt) any {
+	value := i.evaluate(stmt.Expr)
+	fmt.Printf("%v \n", value)
+	return nil
+}
+
+func (i *interpreter) VisitBinary(expr *ast.Binary) any {
 	left := i.evaluate(expr.Left)
 	right := i.evaluate(expr.Right)
 	fmt.Printf("evaluating binary epxr: %v %v %v \n", left, expr.Operator.Lexeme, right)
@@ -85,17 +101,17 @@ func (i *interpreter) VisitBinary(expr *e.Binary) any {
 	return nil
 }
 
-func (i *interpreter) VisitGrouping(expr *e.Grouping) any {
+func (i *interpreter) VisitGrouping(expr *ast.Grouping) any {
 	fmt.Printf("unwrapping parenthesis: %v \n", expr.Expression)
 	return i.evaluate(expr.Expression)
 }
 
-func (i *interpreter) VisitLiteral(expr *e.Literal) any {
+func (i *interpreter) VisitLiteral(expr *ast.Literal) any {
 	fmt.Printf("extracting literal value: %v \n", expr.Value)
 	return expr.Value
 }
 
-func (i *interpreter) VisitUnary(expr *e.Unary) any {
+func (i *interpreter) VisitUnary(expr *ast.Unary) any {
 	right := i.evaluate(expr.Right)
 	fmt.Printf("evaluating unary epxr: %v %v \n", expr.Operator.Lexeme, right)
 
@@ -110,7 +126,7 @@ func (i *interpreter) VisitUnary(expr *e.Unary) any {
 	return nil
 }
 
-func (i *interpreter) VisitTernary(expr *e.Ternary) any {
+func (i *interpreter) VisitTernary(expr *ast.Ternary) any {
 	// TODO: implement me
 	return nil
 }

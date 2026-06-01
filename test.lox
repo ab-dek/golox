@@ -16,3 +16,7 @@ fun printSum(a, b) {
 // 12+(25 + 2) * (-12)-11
 // 1 == 1 ? 2*2 : 1*1
 // 12 % 2
+
+print "one";
+print true;
+print 2 + 1;

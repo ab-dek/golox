@@ -6,7 +6,6 @@ import (
 	"log"
 	"os"
 
-	e "github.com/ab-dek/golox/ast"
 	errs "github.com/ab-dek/golox/errors"
 	i "github.com/ab-dek/golox/interpreter"
 	p "github.com/ab-dek/golox/parser"
@@ -69,12 +68,12 @@ func run(source string) {
 	// }
 	fmt.Println("parsing...")
 	parser := p.NewParser(tokens)
-	expr := parser.Parse()
+	stmts := parser.Parse()
 
-	printer := e.NewPrinter()
-	fmt.Println(printer.Print(expr))
+	// printer := e.NewPrinter()
+	// fmt.Println(printer.Print(expr))
 
 	fmt.Println("interpreting...")
 	interpreter := i.NewInterpreter()
-	interpreter.Interpret(expr)
+	interpreter.Interpret(stmts)
 }
