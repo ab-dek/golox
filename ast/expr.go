@@ -13,6 +13,7 @@ type ExprVisitor interface {
 	VisitGrouping(expr *Grouping) any
 	VisitLiteral(expr *Literal) any
 	VisitUnary(expr *Unary) any
+	VisitVariable(expr *Variable) any
 	VisitTernary(expr *Ternary) any
 }
 
@@ -76,6 +77,20 @@ func NewUnary(operator t.Token, right Expr) *Unary {
 
 func (u *Unary) Accept(visitor ExprVisitor) any {
 	return visitor.VisitUnary(u)
+}
+
+type Variable struct {
+	Name t.Token
+}
+
+func NewVariable(name t.Token) *Variable {
+	return &Variable{
+		Name: name,
+	}
+}
+
+func (v *Variable) Accept(visitor ExprVisitor) any {
+	return visitor.VisitVariable(v)
 }
 
 type Ternary struct {

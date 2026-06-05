@@ -34,6 +34,10 @@ func (p *printer) VisitUnary(expr *Unary) any {
 	return p.parenthesize(expr.Operator.Lexeme, expr.Right)
 }
 
+func (p *printer) VisitVariable(expr *Variable) any {
+	panic("unimplemented")
+}
+
 func (p *printer) VisitTernary(expr *Ternary) any {
 	return p.parenthesize("? :", expr.Condition, expr.Then, expr.Else)
 }

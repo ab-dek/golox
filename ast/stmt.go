@@ -1,5 +1,9 @@
 package ast
 
+import (
+	t "github.com/ab-dek/golox/token"
+)
+
 type Stmt interface {
 	Accept(visitor StmtVisitor) any
 }
@@ -7,6 +11,7 @@ type Stmt interface {
 type StmtVisitor interface {
 	VisitExpr(stmt *ExprStmt) any
 	VisitPrint(stmt *PrintStmt) any
+	VisitVar(stmt *VarStmt) any
 }
 
 type ExprStmt struct {
@@ -35,4 +40,20 @@ func NewPrintStmt(expr Expr) *PrintStmt {
 
 func (p *PrintStmt) Accept(visitor StmtVisitor) any {
 	return visitor.VisitPrint(p)
+}
+
+type VarStmt struct {
+	Token       t.Token
+	Initializer Expr
+}
+
+func NewVarStmt(token t.Token, initializer Expr) *VarStmt {
+	return &VarStmt{
+		Token:       token,
+		Initializer: initializer,
+	}
+}
+
+func (v *VarStmt) Accept(visitor StmtVisitor) any {
+	return visitor.VisitVar(v)
 }

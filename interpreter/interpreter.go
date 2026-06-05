@@ -40,6 +40,10 @@ func (i *interpreter) VisitPrint(stmt *ast.PrintStmt) any {
 	return nil
 }
 
+func (i *interpreter) VisitVar(stmt *ast.VarStmt) any {
+	panic("unimplemented")
+}
+
 func (i *interpreter) VisitBinary(expr *ast.Binary) any {
 	left := i.evaluate(expr.Left)
 	right := i.evaluate(expr.Right)
@@ -124,6 +128,10 @@ func (i *interpreter) VisitUnary(expr *ast.Unary) any {
 	}
 
 	return nil
+}
+
+func (i *interpreter) VisitVariable(expr *ast.Variable) any {
+	panic("unimplemented")
 }
 
 func (i *interpreter) VisitTernary(expr *ast.Ternary) any {

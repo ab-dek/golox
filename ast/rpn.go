@@ -36,6 +36,10 @@ func (r *RPN) VisitUnary(expr *Unary) any {
 	return fmt.Sprintf("%s %s", right, operator)
 }
 
+func (r *RPN) VisitVariable(expr *Variable) any {
+	panic("unimplemented")
+}
+
 func (r *RPN) VisitTernary(expr *Ternary) any {
 	condition := expr.Condition.Accept(r).(string)
 	then := expr.Then.Accept(r).(string)

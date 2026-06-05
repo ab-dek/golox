@@ -20,3 +20,4 @@ fun printSum(a, b) {
 print "one";
 print true;
 print 2 + 1;
+var test = 1;

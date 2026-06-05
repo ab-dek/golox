@@ -9,7 +9,10 @@ import (
 /*
 grammmer:
 
-program→ statement* EOF ;
+program→ declaration* EOF ;
+declaration→ varDecl
+			| statement ;
+varDecl→ "var" IDENTIFIER ( "=" expression )? ";" ;
 statement→ exprStmt
 		   | printStmt ;
 exprStmt→ expression ";" ;
@@ -23,7 +26,8 @@ factor→ unary ( ( "/" | "*" ) unary )* ;
 unary→ ( "!" | "-" ) unary
 	   | primary ;
 primary→ NUMBER | STRING | "true" | "false" | "nil"
-| "(" expression ")" ;
+| "(" expression ")"
+| IDENTIFIER ;
 */
 
 type Parser struct {
@@ -41,9 +45,32 @@ func NewParser(tokens []t.Token) *Parser {
 func (p *Parser) Parse() []ast.Stmt {
 	var statements []ast.Stmt
 	for !p.IsAtEnd() {
-		statements = append(statements, p.statement())
+		statements = append(statements, p.declaration())
 	}
 	return statements
+}
+
+func (p *Parser) declaration() ast.Stmt {
+	defer func() {
+		if err := recover(); err != nil {
+			errs.HadError = true
+			p.synchronize()
+		}
+	}()
+	if p.match(t.VAR) {
+		return p.varDeclaration()
+	}
+	return p.statement()
+}
+
+func (p *Parser) varDeclaration() ast.Stmt {
+	name := p.consume(t.IDENTIFIER, "Expect a variable name.")
+	var initializer ast.Expr
+	if p.match(t.EQUAL) {
+		initializer = p.expression()
+	}
+	p.consume(t.SEMICOLON, "Expect ';' after variable declaration.")
+	return ast.NewVarStmt(name, initializer)
 }
 
 func (p *Parser) statement() ast.Stmt {
@@ -151,6 +178,8 @@ func (p *Parser) primary() ast.Expr {
 		return ast.NewLiteral(nil)
 	case p.match(t.NUMBER, t.STRING):
 		return ast.NewLiteral(p.previous().Literal)
+	case p.match(t.IDENTIFIER):
+		return ast.NewVariable(p.previous())
 	case p.match(t.LEFT_PAREN):
 		expr := p.expression()
 		p.consume(t.RIGHT_PAREN, "Expect ')' after expression.")
