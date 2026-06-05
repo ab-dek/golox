@@ -5,14 +5,19 @@ import (
 	"math"
 
 	"github.com/ab-dek/golox/ast"
+	e "github.com/ab-dek/golox/environment"
 	errs "github.com/ab-dek/golox/errors"
 	t "github.com/ab-dek/golox/token"
 )
 
-type interpreter struct{}
+type interpreter struct {
+	env *e.Environment
+}
 
 func NewInterpreter() *interpreter {
-	return &interpreter{}
+	return &interpreter{
+		env: e.NewEnv(),
+	}
 }
 
 func (i *interpreter) Interpret(stmts []ast.Stmt) {
@@ -41,7 +46,12 @@ func (i *interpreter) VisitPrint(stmt *ast.PrintStmt) any {
 }
 
 func (i *interpreter) VisitVar(stmt *ast.VarStmt) any {
-	panic("unimplemented")
+	var value any
+	if stmt.Initializer != nil {
+		value = i.evaluate(stmt.Initializer)
+	}
+	i.env.Define(stmt.Name.Lexeme, value)
+	return nil
 }
 
 func (i *interpreter) VisitBinary(expr *ast.Binary) any {
@@ -81,20 +91,20 @@ func (i *interpreter) VisitBinary(expr *ast.Binary) any {
 				return leftString + rightString
 			}
 		}
-		errs.RuntimeError(expr.Operator, "Operand must be a number.")
-		panic(runtimeError{})
+		errs.ReportRuntimeError(expr.Operator, "Operand must be a number.")
+		panic(errs.RuntimeError{})
 	case t.MODULO:
 		i.checkNumberOperands(expr.Operator, left, right)
 		if right.(float64) == 0 {
-			errs.RuntimeError(expr.Operator, "Cannot modulo by 0.")
-			panic(runtimeError{})
+			errs.ReportRuntimeError(expr.Operator, "Cannot modulo by 0.")
+			panic(errs.RuntimeError{})
 		}
 		return math.Mod(left.(float64), right.(float64))
 	case t.SLASH:
 		i.checkNumberOperands(expr.Operator, left, right)
 		if right.(float64) == 0 {
-			errs.RuntimeError(expr.Operator, "Cannot divide by 0.")
-			panic(runtimeError{})
+			errs.ReportRuntimeError(expr.Operator, "Cannot divide by 0.")
+			panic(errs.RuntimeError{})
 		}
 		return left.(float64) / right.(float64)
 	case t.STAR:
@@ -131,12 +141,12 @@ func (i *interpreter) VisitUnary(expr *ast.Unary) any {
 }
 
 func (i *interpreter) VisitVariable(expr *ast.Variable) any {
-	panic("unimplemented")
+	return i.env.Get(expr.Name)
 }
 
 func (i *interpreter) VisitTernary(expr *ast.Ternary) any {
 	// TODO: implement me
-	return nil
+	panic("ternary interpreter unimplemented")
 }
 
 func (i *interpreter) isTruthy(value any) bool {
@@ -151,14 +161,12 @@ func (i *interpreter) isTruthy(value any) bool {
 	return true
 }
 
-type runtimeError struct{}
-
 func (i *interpreter) checkNumberOperand(operator t.Token, operand any) {
 	if _, isFloat := operand.(float64); isFloat {
 		return
 	}
-	errs.RuntimeError(operator, "Operand must be a number.")
-	panic(runtimeError{})
+	errs.ReportRuntimeError(operator, "Operand must be a number.")
+	panic(errs.RuntimeError{})
 }
 
 func (i *interpreter) checkNumberOperands(operator t.Token, right, left any) {
@@ -167,6 +175,6 @@ func (i *interpreter) checkNumberOperands(operator t.Token, right, left any) {
 			return
 		}
 	}
-	errs.RuntimeError(operator, "Operand must be a number.")
-	panic(runtimeError{})
+	errs.ReportRuntimeError(operator, "Operand must be a number.")
+	panic(errs.RuntimeError{})
 }

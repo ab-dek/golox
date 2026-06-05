@@ -43,13 +43,13 @@ func (p *PrintStmt) Accept(visitor StmtVisitor) any {
 }
 
 type VarStmt struct {
-	Token       t.Token
+	Name        t.Token
 	Initializer Expr
 }
 
 func NewVarStmt(token t.Token, initializer Expr) *VarStmt {
 	return &VarStmt{
-		Token:       token,
+		Name:        token,
 		Initializer: initializer,
 	}
 }

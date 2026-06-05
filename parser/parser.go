@@ -233,11 +233,9 @@ func (p *Parser) consume(tokenType t.TokenType, message string) t.Token {
 	return t.Token{}
 }
 
-type parseError struct{}
-
 func (p *Parser) error(token t.Token, message string) {
-	errs.ParseError(token, message)
-	panic(parseError{})
+	errs.ReportParseError(token, message)
+	panic(errs.ParseError{})
 }
 
 func (p *Parser) synchronize() {
