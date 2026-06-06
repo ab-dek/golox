@@ -17,6 +17,7 @@ fun printSum(a, b) {
 // 1 == 1 ? 2*2 : 1*1
 // 12 % 2
 
+/*
 print "one";
 print true;
 print 2 + 1;
@@ -26,3 +27,25 @@ a = 20;
 var b = (a += 20) ? 10 : 5;
 b *= 10;
 print a + b;
+*/
+
+// scoping
+var a = "global a";
+var b = "global b";
+var c = "global c";
+{
+var a = "outer a";
+var b = "outer b";
+{
+var a = "inner a";
+print a;
+print b;
+print c;
+}
+print a;
+print b;
+print c;
+}
+print a;
+print b;
+print c;

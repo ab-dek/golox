@@ -9,9 +9,24 @@ type Stmt interface {
 }
 
 type StmtVisitor interface {
+	VisitBlock(stmt Block) any
 	VisitExpr(stmt ExprStmt) any
 	VisitPrint(stmt PrintStmt) any
 	VisitVar(stmt VarStmt) any
+}
+
+type Block struct {
+	Statements []Stmt
+}
+
+func NewBlock(statements []Stmt) *Block {
+	return &Block{
+		Statements: statements,
+	}
+}
+
+func (b Block) Accept(visitor StmtVisitor) any {
+	return visitor.VisitBlock(b)
 }
 
 type ExprStmt struct {

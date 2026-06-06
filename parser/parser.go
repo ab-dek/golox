@@ -14,7 +14,9 @@ declaration→ varDecl
 			 | statement ;
 varDecl→ "var" IDENTIFIER ( "=" expression )? ";" ;
 statement→ exprStmt
-		   | printStmt ;
+		   | printStmt
+		   | block ;
+block→ "{" declaration* "}" ;
 exprStmt→ expression ";" ;
 printStmt→ "print" expression ";" ;
 expression→ assignment ;
@@ -46,7 +48,7 @@ func NewParser(tokens []t.Token) *Parser {
 
 func (p *Parser) Parse() []ast.Stmt {
 	var statements []ast.Stmt
-	for !p.IsAtEnd() {
+	for !p.isAtEnd() {
 		statements = append(statements, p.declaration())
 	}
 	return statements
@@ -79,6 +81,9 @@ func (p *Parser) statement() ast.Stmt {
 	if p.match(t.PRINT) {
 		return p.printStatement()
 	}
+	if p.match(t.LEFT_BRACE) {
+		return ast.NewBlock(p.block())
+	}
 	return p.expressionStatement()
 }
 
@@ -86,6 +91,16 @@ func (p *Parser) printStatement() ast.Stmt {
 	expr := p.expression()
 	p.consume(t.SEMICOLON, "Expect ';' after value.")
 	return ast.NewPrintStmt(expr)
+}
+
+func (p *Parser) block() []ast.Stmt {
+	var statements []ast.Stmt
+	for !p.check(t.RIGHT_BRACE) && !p.isAtEnd() {
+		statements = append(statements, p.declaration())
+	}
+
+	p.consume(t.RIGHT_BRACE, "Expect '}' after block.")
+	return statements
 }
 
 func (p *Parser) expressionStatement() ast.Stmt {
@@ -253,20 +268,20 @@ func (p *Parser) match(types ...t.TokenType) bool {
 }
 
 func (p *Parser) check(tokenType t.TokenType) bool {
-	if p.IsAtEnd() {
+	if p.isAtEnd() {
 		return false
 	}
 	return p.peek().TokenType == tokenType
 }
 
 func (p *Parser) advance() t.Token {
-	if !p.IsAtEnd() {
+	if !p.isAtEnd() {
 		p.current++
 	}
 	return p.previous()
 }
 
-func (p *Parser) IsAtEnd() bool {
+func (p *Parser) isAtEnd() bool {
 	return p.peek().TokenType == t.EOF
 }
 
@@ -293,7 +308,7 @@ func (p *Parser) error(token t.Token, message string) {
 
 func (p *Parser) synchronize() {
 	p.advance()
-	for !p.IsAtEnd() {
+	for !p.isAtEnd() {
 		if p.previous().TokenType == t.SEMICOLON {
 			return
 		}
