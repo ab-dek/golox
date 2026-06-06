@@ -21,5 +21,7 @@ print "one";
 print true;
 print 2 + 1;
 var a = 10;
-var b = 10;
+print a;
+a = 20;
+var b = a > 20 ? 10 : 5;
 print a + b;

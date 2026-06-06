@@ -55,8 +55,9 @@ func (i *interpreter) VisitVar(stmt ast.VarStmt) any {
 }
 
 func (i *interpreter) VisitAssignment(expr ast.Assignment) any {
-	// TODO: implement me
-	panic("unimplemented")
+	value := i.evaluate(expr.Value)
+	i.env.Assign(expr.Name, value)
+	return value
 }
 
 func (i *interpreter) VisitBinary(expr ast.Binary) any {
@@ -150,8 +151,11 @@ func (i *interpreter) VisitVariable(expr ast.Variable) any {
 }
 
 func (i *interpreter) VisitTernary(expr ast.Ternary) any {
-	// TODO: implement me
-	panic("ternary interpreter unimplemented")
+	condition := i.evaluate(expr.Condition)
+	if i.isTruthy(condition) {
+		return i.evaluate(expr.Then)
+	}
+	return i.evaluate(expr.Else)
 }
 
 func (i *interpreter) isTruthy(value any) bool {
