@@ -13,7 +13,7 @@ const (
 	DOT
 	MINUS
 	PLUS
-	MODULO
+	PERCENT
 	SEMICOLON
 	SLASH
 	STAR
@@ -85,8 +85,8 @@ func (t TokenType) String() string {
 		return "MINUS"
 	case PLUS:
 		return "PLUS"
-	case MODULO:
-		return "MODULO"
+	case PERCENT:
+		return "PERCENT"
 	case SEMICOLON:
 		return "SEMICOLON"
 	case SLASH:

@@ -217,7 +217,7 @@ func (p *Parser) term() ast.Expr {
 func (p *Parser) factor() ast.Expr {
 	expr := p.unary()
 
-	for p.match(t.STAR, t.SLASH, t.MODULO) {
+	for p.match(t.STAR, t.SLASH, t.PERCENT) {
 		operator := p.previous()
 		right := p.unary()
 		expr = ast.NewBinary(expr, right, operator)

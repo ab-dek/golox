@@ -116,7 +116,7 @@ func (i *interpreter) VisitBinary(expr ast.Binary) any {
 		}
 		errs.ReportRuntimeError(expr.Operator, "Operand must be a number.")
 		panic(errs.RuntimeError{})
-	case t.MODULO:
+	case t.PERCENT:
 		i.checkNumberOperands(expr.Operator, left, right)
 		if right.(float64) == 0 {
 			errs.ReportRuntimeError(expr.Operator, "Cannot modulo by 0.")

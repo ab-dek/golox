@@ -79,7 +79,7 @@ func (s *Scanner) scanToken() {
 			s.addToken(t.PLUS)
 		}
 	case '%':
-		s.addToken(t.MODULO)
+		s.addToken(t.PERCENT)
 	case ';':
 		s.addToken(t.SEMICOLON)
 	case '*':
