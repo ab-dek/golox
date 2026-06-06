@@ -34,18 +34,18 @@ func (i *interpreter) evaluate(expr ast.Expr) any {
 	return expr.Accept(i)
 }
 
-func (i *interpreter) VisitExpr(stmt *ast.ExprStmt) any {
+func (i *interpreter) VisitExpr(stmt ast.ExprStmt) any {
 	i.evaluate(stmt.Expr)
 	return nil
 }
 
-func (i *interpreter) VisitPrint(stmt *ast.PrintStmt) any {
+func (i *interpreter) VisitPrint(stmt ast.PrintStmt) any {
 	value := i.evaluate(stmt.Expr)
 	fmt.Printf("%v \n", value)
 	return nil
 }
 
-func (i *interpreter) VisitVar(stmt *ast.VarStmt) any {
+func (i *interpreter) VisitVar(stmt ast.VarStmt) any {
 	var value any
 	if stmt.Initializer != nil {
 		value = i.evaluate(stmt.Initializer)
@@ -54,7 +54,12 @@ func (i *interpreter) VisitVar(stmt *ast.VarStmt) any {
 	return nil
 }
 
-func (i *interpreter) VisitBinary(expr *ast.Binary) any {
+func (i *interpreter) VisitAssignment(expr ast.Assignment) any {
+	// TODO: implement me
+	panic("unimplemented")
+}
+
+func (i *interpreter) VisitBinary(expr ast.Binary) any {
 	left := i.evaluate(expr.Left)
 	right := i.evaluate(expr.Right)
 	fmt.Printf("evaluating binary epxr: %v %v %v \n", left, expr.Operator.Lexeme, right)
@@ -115,17 +120,17 @@ func (i *interpreter) VisitBinary(expr *ast.Binary) any {
 	return nil
 }
 
-func (i *interpreter) VisitGrouping(expr *ast.Grouping) any {
+func (i *interpreter) VisitGrouping(expr ast.Grouping) any {
 	fmt.Printf("unwrapping parenthesis: %v \n", expr.Expression)
 	return i.evaluate(expr.Expression)
 }
 
-func (i *interpreter) VisitLiteral(expr *ast.Literal) any {
+func (i *interpreter) VisitLiteral(expr ast.Literal) any {
 	fmt.Printf("extracting literal value: %v \n", expr.Value)
 	return expr.Value
 }
 
-func (i *interpreter) VisitUnary(expr *ast.Unary) any {
+func (i *interpreter) VisitUnary(expr ast.Unary) any {
 	right := i.evaluate(expr.Right)
 	fmt.Printf("evaluating unary epxr: %v %v \n", expr.Operator.Lexeme, right)
 
@@ -140,11 +145,11 @@ func (i *interpreter) VisitUnary(expr *ast.Unary) any {
 	return nil
 }
 
-func (i *interpreter) VisitVariable(expr *ast.Variable) any {
+func (i *interpreter) VisitVariable(expr ast.Variable) any {
 	return i.env.Get(expr.Name)
 }
 
-func (i *interpreter) VisitTernary(expr *ast.Ternary) any {
+func (i *interpreter) VisitTernary(expr ast.Ternary) any {
 	// TODO: implement me
 	panic("ternary interpreter unimplemented")
 }

@@ -15,30 +15,35 @@ func (p *printer) Print(expr Expr) string {
 	return expr.Accept(p).(string)
 }
 
-func (p *printer) VisitBinary(expr *Binary) any {
+func (p *printer) VisitAssignment(expr Assignment) any {
+	//TODO: implement me
+	panic("unimplemented")
+}
+
+func (p *printer) VisitBinary(expr Binary) any {
 	return p.parenthesize(expr.Operator.Lexeme, expr.Left, expr.Right)
 }
 
-func (p *printer) VisitGrouping(expr *Grouping) any {
+func (p *printer) VisitGrouping(expr Grouping) any {
 	return p.parenthesize("group", expr.Expression)
 }
 
-func (p *printer) VisitLiteral(expr *Literal) any {
+func (p *printer) VisitLiteral(expr Literal) any {
 	if expr.Value == nil {
 		return "nil"
 	}
 	return fmt.Sprintf("%v", expr.Value)
 }
 
-func (p *printer) VisitUnary(expr *Unary) any {
+func (p *printer) VisitUnary(expr Unary) any {
 	return p.parenthesize(expr.Operator.Lexeme, expr.Right)
 }
 
-func (p *printer) VisitVariable(expr *Variable) any {
+func (p *printer) VisitVariable(expr Variable) any {
 	panic("unimplemented")
 }
 
-func (p *printer) VisitTernary(expr *Ternary) any {
+func (p *printer) VisitTernary(expr Ternary) any {
 	return p.parenthesize("? :", expr.Condition, expr.Then, expr.Else)
 }
 

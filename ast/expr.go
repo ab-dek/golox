@@ -9,12 +9,29 @@ type Expr interface {
 }
 
 type ExprVisitor interface {
-	VisitBinary(expr *Binary) any
-	VisitGrouping(expr *Grouping) any
-	VisitLiteral(expr *Literal) any
-	VisitUnary(expr *Unary) any
-	VisitVariable(expr *Variable) any
-	VisitTernary(expr *Ternary) any
+	VisitAssignment(expr Assignment) any
+	VisitBinary(expr Binary) any
+	VisitGrouping(expr Grouping) any
+	VisitLiteral(expr Literal) any
+	VisitUnary(expr Unary) any
+	VisitVariable(expr Variable) any
+	VisitTernary(expr Ternary) any
+}
+
+type Assignment struct {
+	Name  t.Token
+	Value Expr
+}
+
+func NewAssignment(name t.Token, value Expr) *Assignment {
+	return &Assignment{
+		Name:  name,
+		Value: value,
+	}
+}
+
+func (a Assignment) Accept(visitor ExprVisitor) any {
+	return visitor.VisitAssignment(a)
 }
 
 type Binary struct {
@@ -31,7 +48,7 @@ func NewBinary(left, right Expr, operator t.Token) *Binary {
 	}
 }
 
-func (b *Binary) Accept(visitor ExprVisitor) any {
+func (b Binary) Accept(visitor ExprVisitor) any {
 	return visitor.VisitBinary(b)
 }
 
@@ -45,7 +62,7 @@ func NewGrouping(expr Expr) *Grouping {
 	}
 }
 
-func (g *Grouping) Accept(visitor ExprVisitor) any {
+func (g Grouping) Accept(visitor ExprVisitor) any {
 	return visitor.VisitGrouping(g)
 }
 
@@ -59,7 +76,7 @@ func NewLiteral(value any) *Literal {
 	}
 }
 
-func (l *Literal) Accept(visitor ExprVisitor) any {
+func (l Literal) Accept(visitor ExprVisitor) any {
 	return visitor.VisitLiteral(l)
 }
 
@@ -75,7 +92,7 @@ func NewUnary(operator t.Token, right Expr) *Unary {
 	}
 }
 
-func (u *Unary) Accept(visitor ExprVisitor) any {
+func (u Unary) Accept(visitor ExprVisitor) any {
 	return visitor.VisitUnary(u)
 }
 
@@ -89,7 +106,7 @@ func NewVariable(name t.Token) *Variable {
 	}
 }
 
-func (v *Variable) Accept(visitor ExprVisitor) any {
+func (v Variable) Accept(visitor ExprVisitor) any {
 	return visitor.VisitVariable(v)
 }
 
@@ -109,6 +126,6 @@ func NewTernary(condition, thenBranch, elseBranch Expr, question t.Token) *Terna
 	}
 }
 
-func (t *Ternary) Accept(visitor ExprVisitor) any {
+func (t Ternary) Accept(visitor ExprVisitor) any {
 	return visitor.VisitTernary(t)
 }

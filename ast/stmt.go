@@ -9,9 +9,9 @@ type Stmt interface {
 }
 
 type StmtVisitor interface {
-	VisitExpr(stmt *ExprStmt) any
-	VisitPrint(stmt *PrintStmt) any
-	VisitVar(stmt *VarStmt) any
+	VisitExpr(stmt ExprStmt) any
+	VisitPrint(stmt PrintStmt) any
+	VisitVar(stmt VarStmt) any
 }
 
 type ExprStmt struct {
@@ -24,7 +24,7 @@ func NewExprStmt(expr Expr) *ExprStmt {
 	}
 }
 
-func (e *ExprStmt) Accept(visitor StmtVisitor) any {
+func (e ExprStmt) Accept(visitor StmtVisitor) any {
 	return visitor.VisitExpr(e)
 }
 
@@ -38,7 +38,7 @@ func NewPrintStmt(expr Expr) *PrintStmt {
 	}
 }
 
-func (p *PrintStmt) Accept(visitor StmtVisitor) any {
+func (p PrintStmt) Accept(visitor StmtVisitor) any {
 	return visitor.VisitPrint(p)
 }
 
@@ -54,6 +54,6 @@ func NewVarStmt(token t.Token, initializer Expr) *VarStmt {
 	}
 }
 
-func (v *VarStmt) Accept(visitor StmtVisitor) any {
+func (v VarStmt) Accept(visitor StmtVisitor) any {
 	return visitor.VisitVar(v)
 }

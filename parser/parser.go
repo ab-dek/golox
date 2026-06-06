@@ -11,13 +11,15 @@ grammmer:
 
 program→ declaration* EOF ;
 declaration→ varDecl
-			| statement ;
+			 | statement ;
 varDecl→ "var" IDENTIFIER ( "=" expression )? ";" ;
 statement→ exprStmt
 		   | printStmt ;
 exprStmt→ expression ";" ;
 printStmt→ "print" expression ";" ;
-expression→ conditional ;
+expression→ assignment ;
+assignment→ IDENTIFIER "=" assignment
+			| equality ;
 conditional→ equality ( "?" expression ":" conditional )? ;
 equality→ comparison ( ( "!=" | "==" ) comparison )* ;
 comparison→ term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
@@ -26,7 +28,7 @@ factor→ unary ( ( "/" | "*" ) unary )* ;
 unary→ ( "!" | "-" ) unary
 	   | primary ;
 primary→ NUMBER | STRING | "true" | "false" | "nil"
-| "(" expression ")"
+		 | "(" expression ")"
 | IDENTIFIER ;
 */
 
@@ -93,10 +95,24 @@ func (p *Parser) expressionStatement() ast.Stmt {
 }
 
 func (p *Parser) expression() ast.Expr {
-	return p.conditional()
+	return p.assignment()
 }
 
-func (p *Parser) conditional() ast.Expr {
+func (p *Parser) assignment() ast.Expr {
+	expr := p.ternary()
+	if p.match(t.EQUAL) {
+		equals := p.previous()
+		value := p.assignment()
+		if variable, ok := expr.(*ast.Variable); ok {
+			return ast.NewAssignment(variable.Name, value)
+		}
+
+		p.error(equals, "Invalid assignment target.")
+	}
+	return expr
+}
+
+func (p *Parser) ternary() ast.Expr {
 	expr := p.equality()
 	if p.match(t.QUESTION_MARK) {
 		questionMark := p.previous()
@@ -104,7 +120,7 @@ func (p *Parser) conditional() ast.Expr {
 
 		p.consume(t.COLON, "Expect ':' after then-branch of conditional operator.")
 
-		elseBranch := p.conditional()
+		elseBranch := p.ternary()
 		expr = ast.NewTernary(expr, thenBranch, elseBranch, questionMark)
 	}
 	return expr
