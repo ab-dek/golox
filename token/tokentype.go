@@ -39,6 +39,12 @@ const (
 	STRING
 	NUMBER
 
+	// Syntactic Sugars.
+	PLUS_EQUAL
+	MINUS_EQUAL
+	STAR_EQUAL
+	SLASH_EQUAL
+
 	// Keywords.
 	AND
 	CLASS
@@ -113,6 +119,14 @@ func (t TokenType) String() string {
 		return "STRING"
 	case NUMBER:
 		return "NUMBER"
+	case PLUS_EQUAL:
+		return "PLUS_EQUAL"
+	case MINUS_EQUAL:
+		return "MINUS_EQUAL"
+	case STAR_EQUAL:
+		return "STAR_EQUAL"
+	case SLASH_EQUAL:
+		return "SLASH_EQUAL"
 	case AND:
 		return "AND"
 	case CLASS:

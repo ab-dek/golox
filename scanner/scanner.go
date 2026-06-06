@@ -67,15 +67,27 @@ func (s *Scanner) scanToken() {
 	case '.':
 		s.addToken(t.DOT)
 	case '-':
-		s.addToken(t.MINUS)
+		if s.match('=') {
+			s.addToken(t.MINUS_EQUAL)
+		} else {
+			s.addToken(t.MINUS)
+		}
 	case '+':
-		s.addToken(t.PLUS)
+		if s.match('=') {
+			s.addToken(t.PLUS_EQUAL)
+		} else {
+			s.addToken(t.PLUS)
+		}
 	case '%':
 		s.addToken(t.MODULO)
 	case ';':
 		s.addToken(t.SEMICOLON)
 	case '*':
-		s.addToken(t.STAR)
+		if s.match('=') {
+			s.addToken(t.STAR_EQUAL)
+		} else {
+			s.addToken(t.STAR)
+		}
 	case '?':
 		s.addToken(t.QUESTION_MARK)
 	case ':':
@@ -111,6 +123,8 @@ func (s *Scanner) scanToken() {
 			}
 		} else if s.match('*') {
 			s.multiLineComment()
+		} else if s.match('=') {
+			s.addToken(t.SLASH_EQUAL)
 		} else {
 			s.addToken(t.SLASH)
 		}

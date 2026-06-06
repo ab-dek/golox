@@ -100,11 +100,48 @@ func (p *Parser) expression() ast.Expr {
 
 func (p *Parser) assignment() ast.Expr {
 	expr := p.ternary()
-	if p.match(t.EQUAL) {
+	switch {
+	case p.match(t.EQUAL):
 		equals := p.previous()
 		value := p.assignment()
 		if variable, ok := expr.(*ast.Variable); ok {
 			return ast.NewAssignment(variable.Name, value)
+		}
+
+		p.error(equals, "Invalid assignment target.")
+	case p.match(t.PLUS_EQUAL):
+		equals := p.previous()
+		value := p.assignment()
+		if variable, ok := expr.(*ast.Variable); ok {
+			addition := ast.NewBinary(variable, value, *t.NewToken(t.PLUS, "+", "", equals.Line))
+			return ast.NewAssignment(variable.Name, addition)
+		}
+
+		p.error(equals, "Invalid assignment target.")
+	case p.match(t.MINUS_EQUAL):
+		equals := p.previous()
+		value := p.assignment()
+		if variable, ok := expr.(*ast.Variable); ok {
+			subtraction := ast.NewBinary(variable, value, *t.NewToken(t.MINUS, "-", "", equals.Line))
+			return ast.NewAssignment(variable.Name, subtraction)
+		}
+
+		p.error(equals, "Invalid assignment target.")
+	case p.match(t.STAR_EQUAL):
+		equals := p.previous()
+		value := p.assignment()
+		if variable, ok := expr.(*ast.Variable); ok {
+			multiplication := ast.NewBinary(variable, value, *t.NewToken(t.STAR, "*", "", equals.Line))
+			return ast.NewAssignment(variable.Name, multiplication)
+		}
+
+		p.error(equals, "Invalid assignment target.")
+	case p.match(t.SLASH_EQUAL):
+		equals := p.previous()
+		value := p.assignment()
+		if variable, ok := expr.(*ast.Variable); ok {
+			addition := ast.NewBinary(variable, value, *t.NewToken(t.SLASH, "/", "", equals.Line))
+			return ast.NewAssignment(variable.Name, addition)
 		}
 
 		p.error(equals, "Invalid assignment target.")
