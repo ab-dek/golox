@@ -26,6 +26,15 @@ func (i *interpreter) Interpret(stmts []ast.Stmt) {
 	}
 }
 
+func (i *interpreter) EvalExpr(expr ast.Expr) any {
+	defer func() {
+		if err := recover(); err != nil {
+			fmt.Printf("%v \n", err)
+		}
+	}()
+	return i.evaluate(expr)
+}
+
 func (i *interpreter) execute(stmt ast.Stmt) {
 	stmt.Accept(i)
 }
@@ -80,7 +89,6 @@ func (i *interpreter) VisitAssignment(expr ast.Assignment) any {
 func (i *interpreter) VisitBinary(expr ast.Binary) any {
 	left := i.evaluate(expr.Left)
 	right := i.evaluate(expr.Right)
-	fmt.Printf("evaluating binary epxr: %v %v %v \n", left, expr.Operator.Lexeme, right)
 
 	switch expr.Operator.TokenType {
 	case t.BANG_EQUAL:
@@ -139,18 +147,15 @@ func (i *interpreter) VisitBinary(expr ast.Binary) any {
 }
 
 func (i *interpreter) VisitGrouping(expr ast.Grouping) any {
-	fmt.Printf("unwrapping parenthesis: %v \n", expr.Expression)
 	return i.evaluate(expr.Expression)
 }
 
 func (i *interpreter) VisitLiteral(expr ast.Literal) any {
-	fmt.Printf("extracting literal value: %v \n", expr.Value)
 	return expr.Value
 }
 
 func (i *interpreter) VisitUnary(expr ast.Unary) any {
 	right := i.evaluate(expr.Right)
-	fmt.Printf("evaluating unary epxr: %v %v \n", expr.Operator.Lexeme, right)
 
 	switch expr.Operator.TokenType {
 	case t.MINUS:

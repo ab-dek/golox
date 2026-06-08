@@ -1,6 +1,8 @@
 package parser
 
 import (
+	"fmt"
+
 	"github.com/ab-dek/golox/ast"
 	errs "github.com/ab-dek/golox/errors"
 	t "github.com/ab-dek/golox/token"
@@ -52,6 +54,15 @@ func (p *Parser) Parse() []ast.Stmt {
 		statements = append(statements, p.declaration())
 	}
 	return statements
+}
+
+func (p *Parser) ParseExpr() ast.Expr {
+	defer func() {
+		if err := recover(); err != nil {
+			fmt.Printf("%v \n", err)
+		}
+	}()
+	return p.expression()
 }
 
 func (p *Parser) declaration() ast.Stmt {

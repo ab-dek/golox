@@ -10,6 +10,7 @@ import (
 	i "github.com/ab-dek/golox/interpreter"
 	p "github.com/ab-dek/golox/parser"
 	sc "github.com/ab-dek/golox/scanner"
+	t "github.com/ab-dek/golox/token"
 )
 
 func main() {
@@ -43,6 +44,8 @@ func runFile(scriptPath string) {
 
 func runPrompt() {
 	scanner := bufio.NewScanner(os.Stdin)
+	interpreter := i.NewInterpreter()
+
 	for {
 		fmt.Print("> ")
 
@@ -50,16 +53,29 @@ func runPrompt() {
 			break
 		}
 		line := scanner.Text()
-		run(line)
+
+		scanner := sc.NewScanner(line)
+
+		tokens := scanner.ScanTokens()
+		lastToken := tokens[len(tokens)-2]
+		parser := p.NewParser(tokens)
+
+		if lastToken.TokenType == t.SEMICOLON || lastToken.TokenType == t.RIGHT_BRACE {
+			interpreter.Interpret(parser.Parse()) // parsing a statement
+		} else {
+			value := interpreter.EvalExpr(parser.ParseExpr()) // parsing expression
+			fmt.Printf("%v \n", value)
+		}
+
 		errs.HadError = false
 	}
+
 	if err := scanner.Err(); err != nil {
 		log.Printf("error reading input: %v", err)
 	}
 }
 
 func run(source string) {
-	fmt.Println("lexing source code... ")
 	scanner := sc.NewScanner(source)
 	tokens := scanner.ScanTokens()
 
@@ -68,14 +84,12 @@ func run(source string) {
 	// 	fmt.Println(token.ToString())
 	// }
 
-	fmt.Println("parsing...")
 	parser := p.NewParser(tokens)
 	stmts := parser.Parse()
 
 	// printer := e.NewPrinter()
 	// fmt.Println(printer.Print(expr))
 
-	fmt.Println("interpreting...")
 	interpreter := i.NewInterpreter()
 	interpreter.Interpret(stmts)
 }
