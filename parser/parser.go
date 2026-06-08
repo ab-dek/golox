@@ -313,8 +313,8 @@ func (p *Parser) consume(tokenType t.TokenType, message string) t.Token {
 }
 
 func (p *Parser) error(token t.Token, message string) {
-	errs.ReportParseError(token, message)
-	panic(errs.ParseError{})
+	errMsg := errs.ReportParseError(token, message)
+	panic(errMsg)
 }
 
 func (p *Parser) synchronize() {

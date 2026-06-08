@@ -14,13 +14,11 @@ func LexError(line int, message string) {
 	Report(line, "", message)
 }
 
-type ParseError struct{}
-
-func ReportParseError(token t.Token, message string) {
+func ReportParseError(token t.Token, message string) string {
 	if token.TokenType == t.EOF {
-		Report(token.Line, " at end", message)
+		return fmt.Sprintf("[line %d] Error %s: %s\n", token.Line, "at end", message)
 	} else {
-		Report(token.Line, " at '"+token.Lexeme+"'", message)
+		return fmt.Sprintf("[line %d] Error %s: %s\n", token.Line, " at '"+token.Lexeme+"'", message)
 	}
 }
 
@@ -28,9 +26,7 @@ func Report(line int, where string, message string) {
 	fmt.Fprintf(os.Stderr, "[line %d] Error %s: %s\n", line, where, message)
 }
 
-type RuntimeError struct{}
-
-func ReportRuntimeError(token t.Token, message string) {
-	Report(token.Line, "", message)
+func ReportRuntimeError(token t.Token, message string) string {
 	HadRuntimeError = true
+	return fmt.Sprintf("[line %d] %s\n", token.Line, message)
 }

@@ -21,6 +21,11 @@ func NewInterpreter() *interpreter {
 }
 
 func (i *interpreter) Interpret(stmts []ast.Stmt) {
+	defer func() {
+		if err := recover(); err != nil {
+			fmt.Printf("%v \n", err)
+		}
+	}()
 	for _, stmt := range stmts {
 		i.execute(stmt)
 	}
@@ -122,20 +127,20 @@ func (i *interpreter) VisitBinary(expr ast.Binary) any {
 				return leftString + rightString
 			}
 		}
-		errs.ReportRuntimeError(expr.Operator, "Operand must be a number.")
-		panic(errs.RuntimeError{})
+		errMsg := errs.ReportRuntimeError(expr.Operator, "Operand must be a number.")
+		panic(errMsg)
 	case t.PERCENT:
 		i.checkNumberOperands(expr.Operator, left, right)
 		if right.(float64) == 0 {
-			errs.ReportRuntimeError(expr.Operator, "Cannot modulo by 0.")
-			panic(errs.RuntimeError{})
+			errMsg := errs.ReportRuntimeError(expr.Operator, "Cannot modulo by 0.")
+			panic(errMsg)
 		}
 		return math.Mod(left.(float64), right.(float64))
 	case t.SLASH:
 		i.checkNumberOperands(expr.Operator, left, right)
 		if right.(float64) == 0 {
-			errs.ReportRuntimeError(expr.Operator, "Cannot divide by 0.")
-			panic(errs.RuntimeError{})
+			errMsg := errs.ReportRuntimeError(expr.Operator, "Cannot divide by 0.")
+			panic(errMsg)
 		}
 		return left.(float64) / right.(float64)
 	case t.STAR:
@@ -196,8 +201,8 @@ func (i *interpreter) checkNumberOperand(operator t.Token, operand any) {
 	if _, isFloat := operand.(float64); isFloat {
 		return
 	}
-	errs.ReportRuntimeError(operator, "Operand must be a number.")
-	panic(errs.RuntimeError{})
+	errMsg := errs.ReportRuntimeError(operator, "Operand must be a number.")
+	panic(errMsg)
 }
 
 func (i *interpreter) checkNumberOperands(operator t.Token, right, left any) {
@@ -206,6 +211,6 @@ func (i *interpreter) checkNumberOperands(operator t.Token, right, left any) {
 			return
 		}
 	}
-	errs.ReportRuntimeError(operator, "Operand must be a number.")
-	panic(errs.RuntimeError{})
+	errMsg := errs.ReportRuntimeError(operator, "Operand must be a number.")
+	panic(errMsg)
 }
