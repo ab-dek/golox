@@ -18,7 +18,9 @@ varDecl→ "var" IDENTIFIER ( "=" expression )? ";" ;
 statement→ exprStmt
 		   | printStmt
 		   | ifStmt
+		   | whileStmt
 		   | block ;
+whileStmt→ "while" "(" expression ")" statement ;
 ifStmt→ "if" "(" expression ")" statement ( "else" statement )? ;
 block→ "{" declaration* "}" ;
 exprStmt→ expression ";" ;
@@ -102,7 +104,19 @@ func (p *Parser) statement() ast.Stmt {
 	if p.match(t.IF) {
 		return p.ifStatement()
 	}
+	if p.match(t.WHILE) {
+		return p.whileStatement()
+	}
 	return p.expressionStatement()
+}
+
+func (p *Parser) whileStatement() ast.Stmt {
+	p.consume(t.LEFT_PAREN, "Expect '(' after 'while'.")
+	condition := p.expression()
+	p.consume(t.RIGHT_PAREN, "Expect ')' after while conditional.")
+
+	body := p.statement()
+	return ast.NewWhileStmt(condition, body)
 }
 
 func (p *Parser) printStatement() ast.Stmt {
@@ -134,9 +148,9 @@ func (p *Parser) expression() ast.Expr {
 func (p *Parser) ifStatement() ast.Stmt {
 	var elseStmt ast.Stmt
 
-	p.consume(t.LEFT_PAREN, "Expect '(' after if conditional expression")
+	p.consume(t.LEFT_PAREN, "Expect '(' after 'if'.")
 	condition := p.expression()
-	p.consume(t.RIGHT_PAREN, "Expect ')' after if conditional expression")
+	p.consume(t.RIGHT_PAREN, "Expect ')' after if condition.")
 
 	thenStmt := p.statement()
 	if p.match(t.ELSE) {

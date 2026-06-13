@@ -14,6 +14,7 @@ type StmtVisitor interface {
 	VisitPrint(stmt PrintStmt) any
 	VisitVar(stmt VarStmt) any
 	VisitIf(stmt IfStmt) any
+	VisitWhile(stmt WhileStmt) any
 }
 
 type Block struct {
@@ -42,6 +43,22 @@ func NewExprStmt(expr Expr) *ExprStmt {
 
 func (e ExprStmt) Accept(visitor StmtVisitor) any {
 	return visitor.VisitExpr(e)
+}
+
+type WhileStmt struct {
+	Condition Expr
+	Body      Stmt
+}
+
+func NewWhileStmt(condition Expr, body Stmt) *WhileStmt {
+	return &WhileStmt{
+		Condition: condition,
+		Body:      body,
+	}
+}
+
+func (w WhileStmt) Accept(visitor StmtVisitor) any {
+	return visitor.VisitWhile(w)
 }
 
 type IfStmt struct {

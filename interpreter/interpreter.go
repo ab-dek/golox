@@ -70,6 +70,14 @@ func (i *interpreter) VisitExpr(stmt ast.ExprStmt) any {
 	return nil
 }
 
+func (i *interpreter) VisitWhile(stmt ast.WhileStmt) any {
+	for i.isTruthy(i.evaluate(stmt.Condition)) {
+		i.execute(stmt.Body)
+	}
+
+	return nil
+}
+
 func (i *interpreter) VisitIf(stmt ast.IfStmt) any {
 	fmt.Println("visiting if statement")
 	condition := i.evaluate(stmt.Condition)
