@@ -25,7 +25,9 @@ exprStmt→ expression ";" ;
 printStmt→ "print" expression ";" ;
 expression→ assignment ;
 assignment→ IDENTIFIER "=" assignment
-			| ternary ;
+			| logic_or ;
+logic_or→ logic_and ( "or" logic_and )* ;
+logic_and→ ternary ( "and" ternary )* ;
 ternary→ equality ( "?" expression ":" conditional )? ;
 equality→ comparison ( ( "!=" | "==" ) comparison )* ;
 comparison→ term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
@@ -145,7 +147,7 @@ func (p *Parser) ifStatement() ast.Stmt {
 }
 
 func (p *Parser) assignment() ast.Expr {
-	expr := p.ternary()
+	expr := p.or()
 	switch {
 	case p.match(t.EQUAL):
 		equals := p.previous()
@@ -191,6 +193,26 @@ func (p *Parser) assignment() ast.Expr {
 		}
 
 		p.error(equals, "Invalid assignment target.")
+	}
+	return expr
+}
+
+func (p *Parser) or() ast.Expr {
+	expr := p.and()
+	for p.match(t.OR) {
+		operator := p.previous()
+		right := p.and()
+		expr = ast.NewLogical(expr, right, operator)
+	}
+	return expr
+}
+
+func (p *Parser) and() ast.Expr {
+	expr := p.ternary()
+	for p.match(t.AND) {
+		operator := p.previous()
+		right := p.ternary()
+		expr = ast.NewLogical(expr, right, operator)
 	}
 	return expr
 }

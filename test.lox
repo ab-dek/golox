@@ -40,7 +40,7 @@ print b;
 print a;
 print b;
 
-if (2 == 3) {
+if (2 == 3 or true) {
     print "truthy";
 } else {
     print "falsey";

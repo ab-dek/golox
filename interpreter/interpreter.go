@@ -71,6 +71,7 @@ func (i *interpreter) VisitExpr(stmt ast.ExprStmt) any {
 }
 
 func (i *interpreter) VisitIf(stmt ast.IfStmt) any {
+	fmt.Println("visiting if statement")
 	condition := i.evaluate(stmt.Condition)
 
 	if i.isTruthy(condition) {
@@ -169,6 +170,22 @@ func (i *interpreter) VisitGrouping(expr ast.Grouping) any {
 
 func (i *interpreter) VisitLiteral(expr ast.Literal) any {
 	return expr.Value
+}
+
+func (i *interpreter) VisitLogical(expr ast.Logical) any {
+	left := i.evaluate(expr.Left)
+
+	if expr.Operator.TokenType == t.OR {
+		if i.isTruthy(left) {
+			return left
+		}
+	} else {
+		if !i.isTruthy(left) {
+			return left
+		}
+	}
+
+	return i.evaluate(expr.Right)
 }
 
 func (i *interpreter) VisitUnary(expr ast.Unary) any {

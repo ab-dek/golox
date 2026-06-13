@@ -35,6 +35,10 @@ func (p *printer) VisitLiteral(expr Literal) any {
 	return fmt.Sprintf("%v", expr.Value)
 }
 
+func (p *printer) VisitLogical(expr Logical) any {
+	return p.parenthesize(expr.Operator.Lexeme, expr.Left, expr.Right)
+}
+
 func (p *printer) VisitUnary(expr Unary) any {
 	return p.parenthesize(expr.Operator.Lexeme, expr.Right)
 }

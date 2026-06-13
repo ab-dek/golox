@@ -1,6 +1,8 @@
 package ast
 
-import "fmt"
+import (
+	"fmt"
+)
 
 // reverse polish notation
 type RPN struct{}
@@ -32,6 +34,14 @@ func (r *RPN) VisitGrouping(expr Grouping) any {
 
 func (r *RPN) VisitLiteral(expr Literal) any {
 	return fmt.Sprintf("%v", expr.Value)
+}
+
+func (r *RPN) VisitLogical(expr Logical) any {
+	left := expr.Left.Accept(r).(string)
+	right := expr.Right.Accept(r).(string)
+	operator := expr.Operator.Lexeme
+
+	return fmt.Sprintf("%s %s %s", left, right, operator)
 }
 
 func (r *RPN) VisitUnary(expr Unary) any {
