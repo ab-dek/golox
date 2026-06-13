@@ -19,7 +19,11 @@ statement→ exprStmt
 		   | printStmt
 		   | ifStmt
 		   | whileStmt
+		   | forStmt
 		   | block ;
+forStmt→ "for" "(" ( varDecl | exprStmt | ";" )
+		  expression? ";"
+		  expression? ")" statement ;
 whileStmt→ "while" "(" expression ")" statement ;
 ifStmt→ "if" "(" expression ")" statement ( "else" statement )? ;
 block→ "{" declaration* "}" ;
@@ -74,6 +78,7 @@ func (p *Parser) ParseExpr() ast.Expr {
 func (p *Parser) declaration() ast.Stmt {
 	defer func() {
 		if err := recover(); err != nil {
+			fmt.Printf("%v \n", err)
 			errs.HadError = true
 			p.synchronize()
 		}
@@ -107,7 +112,59 @@ func (p *Parser) statement() ast.Stmt {
 	if p.match(t.WHILE) {
 		return p.whileStatement()
 	}
+	if p.match(t.FOR) {
+		return p.forStatement()
+	}
 	return p.expressionStatement()
+}
+
+func (p *Parser) forStatement() ast.Stmt {
+	p.consume(t.LEFT_PAREN, "Expect '(' after 'for'.")
+
+	var initializer ast.Stmt
+	if p.match(t.VAR) {
+		initializer = p.varDeclaration()
+	} else if p.match(t.SEMICOLON) {
+		initializer = nil
+	} else {
+		initializer = p.expressionStatement()
+	}
+
+	var condition ast.Expr
+	if !p.check(t.SEMICOLON) {
+		condition = p.expression()
+	}
+	p.consume(t.SEMICOLON, "Expect ';' after loop condition.")
+
+	var increment ast.Expr
+	if !p.check(t.RIGHT_PAREN) {
+		increment = p.expression()
+	}
+	p.consume(t.RIGHT_PAREN, "Expect ')' after for clause.")
+
+	body := p.statement()
+
+	if increment != nil {
+		body = ast.NewBlock(
+			[]ast.Stmt{
+				body,
+				ast.NewExprStmt(increment),
+			})
+	}
+
+	if condition == nil {
+		condition = ast.NewLiteral(true)
+	}
+	body = ast.NewWhileStmt(condition, body)
+
+	if initializer != nil {
+		body = ast.NewBlock([]ast.Stmt{
+			initializer,
+			body,
+		})
+	}
+
+	return body
 }
 
 func (p *Parser) whileStatement() ast.Stmt {
