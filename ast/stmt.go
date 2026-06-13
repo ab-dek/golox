@@ -13,6 +13,7 @@ type StmtVisitor interface {
 	VisitExpr(stmt ExprStmt) any
 	VisitPrint(stmt PrintStmt) any
 	VisitVar(stmt VarStmt) any
+	VisitIf(stmt IfStmt) any
 }
 
 type Block struct {
@@ -41,6 +42,24 @@ func NewExprStmt(expr Expr) *ExprStmt {
 
 func (e ExprStmt) Accept(visitor StmtVisitor) any {
 	return visitor.VisitExpr(e)
+}
+
+type IfStmt struct {
+	Condition Expr
+	Then      Stmt
+	Else      Stmt
+}
+
+func NewIfStmt(condition Expr, thenBlock, elseBlock Stmt) *IfStmt {
+	return &IfStmt{
+		Condition: condition,
+		Then:      thenBlock,
+		Else:      elseBlock,
+	}
+}
+
+func (i IfStmt) Accept(visitor StmtVisitor) any {
+	return visitor.VisitIf(i)
 }
 
 type PrintStmt struct {

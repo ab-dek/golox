@@ -17,14 +17,16 @@ declaration→ varDecl
 varDecl→ "var" IDENTIFIER ( "=" expression )? ";" ;
 statement→ exprStmt
 		   | printStmt
+		   | ifStmt
 		   | block ;
+ifStmt→ "if" "(" expression ")" statement ( "else" statement )? ;
 block→ "{" declaration* "}" ;
 exprStmt→ expression ";" ;
 printStmt→ "print" expression ";" ;
 expression→ assignment ;
 assignment→ IDENTIFIER "=" assignment
-			| equality ;
-conditional→ equality ( "?" expression ":" conditional )? ;
+			| ternary ;
+ternary→ equality ( "?" expression ":" conditional )? ;
 equality→ comparison ( ( "!=" | "==" ) comparison )* ;
 comparison→ term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 term→ factor ( ( "-" | "+" ) factor )* ;
@@ -95,6 +97,9 @@ func (p *Parser) statement() ast.Stmt {
 	if p.match(t.LEFT_BRACE) {
 		return ast.NewBlock(p.block())
 	}
+	if p.match(t.IF) {
+		return p.ifStatement()
+	}
 	return p.expressionStatement()
 }
 
@@ -122,6 +127,21 @@ func (p *Parser) expressionStatement() ast.Stmt {
 
 func (p *Parser) expression() ast.Expr {
 	return p.assignment()
+}
+
+func (p *Parser) ifStatement() ast.Stmt {
+	var elseStmt ast.Stmt
+
+	p.consume(t.LEFT_PAREN, "Expect '(' after if conditional expression")
+	condition := p.expression()
+	p.consume(t.RIGHT_PAREN, "Expect ')' after if conditional expression")
+
+	thenStmt := p.statement()
+	if p.match(t.ELSE) {
+		elseStmt = p.statement()
+	}
+
+	return ast.NewIfStmt(condition, thenStmt, elseStmt)
 }
 
 func (p *Parser) assignment() ast.Expr {

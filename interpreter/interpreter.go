@@ -70,6 +70,18 @@ func (i *interpreter) VisitExpr(stmt ast.ExprStmt) any {
 	return nil
 }
 
+func (i *interpreter) VisitIf(stmt ast.IfStmt) any {
+	condition := i.evaluate(stmt.Condition)
+
+	if i.isTruthy(condition) {
+		i.execute(stmt.Then)
+	} else if stmt.Else != nil {
+		i.execute(stmt.Else)
+	}
+
+	return nil
+}
+
 func (i *interpreter) VisitPrint(stmt ast.PrintStmt) any {
 	value := i.evaluate(stmt.Expr)
 	fmt.Printf("%v \n", value)
