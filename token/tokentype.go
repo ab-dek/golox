@@ -63,6 +63,8 @@ const (
 	TRUE
 	VAR
 	WHILE
+	BREAK
+	CONTINUE
 
 	EOF
 )
@@ -159,6 +161,10 @@ func (t TokenType) String() string {
 		return "VAR"
 	case WHILE:
 		return "WHILE"
+	case BREAK:
+		return "BREAK"
+	case CONTINUE:
+		return "CONTINUE"
 	case EOF:
 		return "EOF"
 	default:

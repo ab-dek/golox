@@ -15,6 +15,8 @@ type StmtVisitor interface {
 	VisitVar(stmt VarStmt) any
 	VisitIf(stmt IfStmt) any
 	VisitWhile(stmt WhileStmt) any
+	VisitBreak(stmt BreakStmt) any
+	VisitContinue(stmt ContinueStmt) any
 }
 
 type Block struct {
@@ -48,12 +50,14 @@ func (e ExprStmt) Accept(visitor StmtVisitor) any {
 type WhileStmt struct {
 	Condition Expr
 	Body      Stmt
+	Increment Expr // value is only set when desugaring a for loop
 }
 
-func NewWhileStmt(condition Expr, body Stmt) *WhileStmt {
+func NewWhileStmt(condition, increment Expr, body Stmt) *WhileStmt {
 	return &WhileStmt{
 		Condition: condition,
 		Body:      body,
+		Increment: increment,
 	}
 }
 
@@ -107,4 +111,24 @@ func NewVarStmt(token t.Token, initializer Expr) *VarStmt {
 
 func (v VarStmt) Accept(visitor StmtVisitor) any {
 	return visitor.VisitVar(v)
+}
+
+type BreakStmt struct{}
+
+func NewBreakStmt() *BreakStmt {
+	return &BreakStmt{}
+}
+
+func (l BreakStmt) Accept(visitor StmtVisitor) any {
+	return visitor.VisitBreak(l)
+}
+
+type ContinueStmt struct{}
+
+func NewContinueStmt() *ContinueStmt {
+	return &ContinueStmt{}
+}
+
+func (c ContinueStmt) Accept(visitor StmtVisitor) any {
+	return visitor.VisitContinue(c)
 }

@@ -20,6 +20,8 @@ statement→ exprStmt
 		   | ifStmt
 		   | whileStmt
 		   | forStmt
+		   | breakStmt
+		   | continueStmt
 		   | block ;
 forStmt→ "for" "(" ( varDecl | exprStmt | ";" )
 		  expression? ";"
@@ -47,14 +49,16 @@ primary→ NUMBER | STRING | "true" | "false" | "nil"
 */
 
 type Parser struct {
-	tokens  []t.Token
-	current int
+	tokens      []t.Token
+	current     int
+	loopNesting int
 }
 
 func NewParser(tokens []t.Token) *Parser {
 	return &Parser{
-		tokens:  tokens,
-		current: 0,
+		tokens:      tokens,
+		current:     0,
+		loopNesting: 0,
 	}
 }
 
@@ -110,10 +114,24 @@ func (p *Parser) statement() ast.Stmt {
 		return p.ifStatement()
 	}
 	if p.match(t.WHILE) {
+		p.loopNesting++
+		defer func() {
+			p.loopNesting--
+		}()
 		return p.whileStatement()
 	}
 	if p.match(t.FOR) {
+		p.loopNesting++
+		defer func() {
+			p.loopNesting--
+		}()
 		return p.forStatement()
+	}
+	if p.match(t.BREAK) {
+		return p.breakStatement()
+	}
+	if p.match(t.CONTINUE) {
+		return p.continueStatement()
 	}
 	return p.expressionStatement()
 }
@@ -144,18 +162,10 @@ func (p *Parser) forStatement() ast.Stmt {
 
 	body := p.statement()
 
-	if increment != nil {
-		body = ast.NewBlock(
-			[]ast.Stmt{
-				body,
-				ast.NewExprStmt(increment),
-			})
-	}
-
 	if condition == nil {
 		condition = ast.NewLiteral(true)
 	}
-	body = ast.NewWhileStmt(condition, body)
+	body = ast.NewWhileStmt(condition, increment, body)
 
 	if initializer != nil {
 		body = ast.NewBlock([]ast.Stmt{
@@ -173,7 +183,7 @@ func (p *Parser) whileStatement() ast.Stmt {
 	p.consume(t.RIGHT_PAREN, "Expect ')' after while conditional.")
 
 	body := p.statement()
-	return ast.NewWhileStmt(condition, body)
+	return ast.NewWhileStmt(condition, nil, body)
 }
 
 func (p *Parser) printStatement() ast.Stmt {
@@ -215,6 +225,24 @@ func (p *Parser) ifStatement() ast.Stmt {
 	}
 
 	return ast.NewIfStmt(condition, thenStmt, elseStmt)
+}
+
+func (p *Parser) breakStatement() ast.Stmt {
+	breakKeyword := p.previous()
+	p.consume(t.SEMICOLON, "Expect ';' after statement.")
+	if p.loopNesting == 0 {
+		p.error(breakKeyword, "Cannot use 'break' statement outside of a loop.")
+	}
+	return ast.NewBreakStmt()
+}
+
+func (p *Parser) continueStatement() ast.Stmt {
+	continueKeyword := p.previous()
+	p.consume(t.SEMICOLON, "Expect ';' after statement.")
+	if p.loopNesting == 0 {
+		p.error(continueKeyword, "Cannot use 'continue' statement outside of a loop.")
+	}
+	return ast.NewContinueStmt()
 }
 
 func (p *Parser) assignment() ast.Expr {

@@ -56,6 +56,20 @@ func (i *interpreter) executeBlock(statements []ast.Stmt, env *e.Environment) {
 	}
 }
 
+func (i *interpreter) executeLoop(stmt ast.Stmt) any {
+	defer func() {
+		if err := recover(); err != nil {
+			if _, ok := err.(Continue); !ok {
+				panic(err)
+			}
+		}
+	}()
+
+	i.execute(stmt)
+
+	return nil
+}
+
 func (i *interpreter) evaluate(expr ast.Expr) any {
 	return expr.Accept(i)
 }
@@ -71,15 +85,27 @@ func (i *interpreter) VisitExpr(stmt ast.ExprStmt) any {
 }
 
 func (i *interpreter) VisitWhile(stmt ast.WhileStmt) any {
-	for i.isTruthy(i.evaluate(stmt.Condition)) {
-		i.execute(stmt.Body)
-	}
+	defer func() {
+		if err := recover(); err != nil {
+			if _, ok := err.(Break); !ok {
+				panic(err)
+			}
+		}
+	}()
 
+	for i.isTruthy(i.evaluate(stmt.Condition)) {
+		i.executeLoop(stmt.Body)
+
+		// if this loop came from a desugared for loop, handle the increment separately here
+		// so that its not skipped when hitting a 'continue'
+		if stmt.Increment != nil {
+			i.evaluate(stmt.Increment)
+		}
+	}
 	return nil
 }
 
 func (i *interpreter) VisitIf(stmt ast.IfStmt) any {
-	fmt.Println("visiting if statement")
 	condition := i.evaluate(stmt.Condition)
 
 	if i.isTruthy(condition) {
@@ -104,6 +130,18 @@ func (i *interpreter) VisitVar(stmt ast.VarStmt) any {
 	}
 	i.env.Define(stmt.Name.Lexeme, value)
 	return nil
+}
+
+type Break struct{}
+
+func (i *interpreter) VisitBreak(stmt ast.BreakStmt) any {
+	panic(Break{})
+}
+
+type Continue struct{}
+
+func (i *interpreter) VisitContinue(stmt ast.ContinueStmt) any {
+	panic(Continue{})
 }
 
 func (i *interpreter) VisitAssignment(expr ast.Assignment) any {
