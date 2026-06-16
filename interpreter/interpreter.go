@@ -186,19 +186,19 @@ func (i *interpreter) VisitBinary(expr ast.Binary) any {
 				return leftString + rightString
 			}
 		}
-		errMsg := errs.ReportRuntimeError(expr.Operator, "Operand must be a number.")
+		errMsg := errs.RuntimeError(expr.Operator, "Operand must be a number.")
 		panic(errMsg)
 	case t.PERCENT:
 		i.checkNumberOperands(expr.Operator, left, right)
 		if right.(float64) == 0 {
-			errMsg := errs.ReportRuntimeError(expr.Operator, "Cannot modulo by 0.")
+			errMsg := errs.RuntimeError(expr.Operator, "Cannot modulo by 0.")
 			panic(errMsg)
 		}
 		return math.Mod(left.(float64), right.(float64))
 	case t.SLASH:
 		i.checkNumberOperands(expr.Operator, left, right)
 		if right.(float64) == 0 {
-			errMsg := errs.ReportRuntimeError(expr.Operator, "Cannot divide by 0.")
+			errMsg := errs.RuntimeError(expr.Operator, "Cannot divide by 0.")
 			panic(errMsg)
 		}
 		return left.(float64) / right.(float64)
@@ -248,6 +248,27 @@ func (i *interpreter) VisitUnary(expr ast.Unary) any {
 	return nil
 }
 
+func (i *interpreter) VisitCall(expr ast.Call) any {
+	callee := i.evaluate(expr.Callee)
+	var arguments []any
+	for _, expr := range expr.Arguments {
+		arguments = append(arguments, i.evaluate(expr))
+	}
+
+	function, ok := callee.(callable)
+	if !ok {
+		errMsg := errs.RuntimeError(expr.Paren, "Can only call functions.")
+		panic(errMsg)
+	}
+
+	if len(arguments) != function.arity() {
+		errMsg := errs.RuntimeError(expr.Paren, fmt.Sprintf("Expected %d arguments but got %d.", function.arity(), len(arguments)))
+		panic(errMsg)
+	}
+
+	return function.call(i, arguments)
+}
+
 func (i *interpreter) VisitVariable(expr ast.Variable) any {
 	return i.env.Get(expr.Name)
 }
@@ -276,7 +297,7 @@ func (i *interpreter) checkNumberOperand(operator t.Token, operand any) {
 	if _, isFloat := operand.(float64); isFloat {
 		return
 	}
-	errMsg := errs.ReportRuntimeError(operator, "Operand must be a number.")
+	errMsg := errs.RuntimeError(operator, "Operand must be a number.")
 	panic(errMsg)
 }
 
@@ -286,6 +307,6 @@ func (i *interpreter) checkNumberOperands(operator t.Token, right, left any) {
 			return
 		}
 	}
-	errMsg := errs.ReportRuntimeError(operator, "Operand must be a number.")
+	errMsg := errs.RuntimeError(operator, "Operand must be a number.")
 	panic(errMsg)
 }

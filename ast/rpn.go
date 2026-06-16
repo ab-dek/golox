@@ -51,6 +51,10 @@ func (r *RPN) VisitUnary(expr Unary) any {
 	return fmt.Sprintf("%s %s", right, operator)
 }
 
+func (r *RPN) VisitCall(expr Call) any {
+	panic("unimplemented")
+}
+
 func (r *RPN) VisitVariable(expr Variable) any {
 	panic("unimplemented")
 }

@@ -14,7 +14,7 @@ func LexError(line int, message string) {
 	Report(line, "", message)
 }
 
-func ReportParseError(token t.Token, message string) string {
+func ParseError(token t.Token, message string) string {
 	if token.TokenType == t.EOF {
 		return fmt.Sprintf("[line %d] Error %s: %s\n", token.Line, "at end", message)
 	} else {
@@ -26,7 +26,7 @@ func Report(line int, where string, message string) {
 	fmt.Fprintf(os.Stderr, "[line %d] Error %s: %s\n", line, where, message)
 }
 
-func ReportRuntimeError(token t.Token, message string) string {
+func RuntimeError(token t.Token, message string) string {
 	HadRuntimeError = true
 	return fmt.Sprintf("[line %d] %s\n", token.Line, message)
 }

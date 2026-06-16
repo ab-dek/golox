@@ -42,7 +42,9 @@ comparison→ term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 term→ factor ( ( "-" | "+" ) factor )* ;
 factor→ unary ( ( "/" | "*" ) unary )* ;
 unary→ ( "!" | "-" ) unary
-	   | primary ;
+	   | call ;
+call→ primary ( "(" arguments? ")" )* ;
+argument→ expression ( "," expression )* ;
 primary→ NUMBER | STRING | "true" | "false" | "nil"
 		 | "(" expression ")"
 | IDENTIFIER ;
@@ -385,7 +387,36 @@ func (p *Parser) unary() ast.Expr {
 		return ast.NewUnary(operator, right)
 	}
 
-	return p.primary()
+	return p.call()
+}
+
+func (p *Parser) call() ast.Expr {
+	expr := p.primary()
+
+	for {
+		if p.match(t.LEFT_PAREN) {
+			expr = p.finishCall(expr)
+		} else {
+			break
+		}
+	}
+	return expr
+}
+
+func (p *Parser) finishCall(callee ast.Expr) ast.Expr {
+	var arguments []ast.Expr
+	if !p.check(t.RIGHT_PAREN) {
+		arguments = append(arguments, p.expression())
+		for p.match(t.COMMA) {
+			if len(arguments) >= 255 {
+				errs.ParseError(p.peek(), "Can't have more than 255 arguments")
+			}
+			arguments = append(arguments, p.expression())
+		}
+	}
+
+	rightParen := p.consume(t.RIGHT_PAREN, "Expect ')' after arguments.")
+	return ast.NewCall(callee, rightParen, arguments)
 }
 
 func (p *Parser) primary() ast.Expr {
@@ -454,7 +485,7 @@ func (p *Parser) consume(tokenType t.TokenType, message string) t.Token {
 }
 
 func (p *Parser) error(token t.Token, message string) {
-	errMsg := errs.ReportParseError(token, message)
+	errMsg := errs.ParseError(token, message)
 	panic(errMsg)
 }
 

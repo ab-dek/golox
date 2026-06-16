@@ -15,6 +15,7 @@ type ExprVisitor interface {
 	VisitLiteral(expr Literal) any
 	VisitLogical(expr Logical) any
 	VisitUnary(expr Unary) any
+	VisitCall(expr Call) any
 	VisitVariable(expr Variable) any
 	VisitTernary(expr Ternary) any
 }
@@ -51,6 +52,24 @@ func NewBinary(left, right Expr, operator t.Token) *Binary {
 
 func (b Binary) Accept(visitor ExprVisitor) any {
 	return visitor.VisitBinary(b)
+}
+
+type Call struct {
+	Callee    Expr
+	Paren     t.Token
+	Arguments []Expr
+}
+
+func NewCall(callee Expr, paren t.Token, arguments []Expr) *Call {
+	return &Call{
+		Callee:    callee,
+		Paren:     paren,
+		Arguments: arguments,
+	}
+}
+
+func (c Call) Accept(visitor ExprVisitor) any {
+	return visitor.VisitCall(c)
 }
 
 type Grouping struct {

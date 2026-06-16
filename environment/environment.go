@@ -34,13 +34,13 @@ func (e *Environment) Assign(name t.Token, value any) {
 		return
 	}
 
-	errMsg := errs.ReportRuntimeError(name, fmt.Sprintf("Undefined variable %s. \n", name.Lexeme))
+	errMsg := errs.RuntimeError(name, fmt.Sprintf("Undefined variable %s. \n", name.Lexeme))
 	panic(errMsg)
 }
 func (e *Environment) Get(name t.Token) any {
 	if value, ok := e.values[name.Lexeme]; ok {
 		if value == nil {
-			errMsg := errs.ReportRuntimeError(name, fmt.Sprintf("Variable not intialized %s. \n", name.Lexeme))
+			errMsg := errs.RuntimeError(name, fmt.Sprintf("Variable not intialized %s. \n", name.Lexeme))
 			panic(errMsg)
 		}
 		return value
@@ -50,6 +50,6 @@ func (e *Environment) Get(name t.Token) any {
 		return e.enclosing.Get(name)
 	}
 
-	errMsg := errs.ReportRuntimeError(name, fmt.Sprintf("Undefined variable %s. \n", name.Lexeme))
+	errMsg := errs.RuntimeError(name, fmt.Sprintf("Undefined variable %s. \n", name.Lexeme))
 	panic(errMsg)
 }
