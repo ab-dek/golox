@@ -7,15 +7,30 @@ import (
 	e "github.com/ab-dek/golox/environment"
 )
 
-type Function ast.FuncStmt
-
-func NewFunction(funcStmt ast.FuncStmt) *Function {
-	function := Function(funcStmt)
-	return &function
+type Function struct {
+	ast.FuncStmt
+	Closure *e.Environment
 }
 
-func (f Function) call(i *interpreter, arguments []any) any {
-	env := e.NewEnv(i.global)
+func NewFunction(declaration ast.FuncStmt, closure *e.Environment) *Function {
+	return &Function{
+		FuncStmt: declaration,
+		Closure:  closure,
+	}
+}
+
+func (f Function) call(i *interpreter, arguments []any) (result any) {
+	defer func() {
+		if err := recover(); err != nil {
+			if ReturnValue, ok := err.(Return); ok {
+				result = ReturnValue.value
+				return
+			}
+			panic(err)
+		}
+	}()
+
+	env := e.NewEnv(f.Closure)
 	for i, param := range f.Params {
 		env.Define(param.Lexeme, arguments[i])
 	}

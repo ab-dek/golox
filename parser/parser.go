@@ -25,6 +25,7 @@ statement→ exprStmt
 		   | whileStmt
 		   | forStmt
 		   | breakStmt
+		   | returnStmt
 		   | continueStmt
 		   | block ;
 forStmt→ "for" "(" ( varDecl | exprStmt | ";" )
@@ -35,6 +36,7 @@ ifStmt→ "if" "(" expression ")" statement ( "else" statement )? ;
 block→ "{" declaration* "}" ;
 exprStmt→ expression ";" ;
 printStmt→ "print" expression ";" ;
+returnStmt→ "return" expression? ";" ;
 expression→ assignment ;
 assignment→ IDENTIFIER "=" assignment
 			| logic_or ;
@@ -164,6 +166,9 @@ func (p *Parser) statement() ast.Stmt {
 	if p.match(t.CONTINUE) {
 		return p.continueStatement()
 	}
+	if p.match(t.RETURN) {
+		return p.returnStatement()
+	}
 	return p.expressionStatement()
 }
 
@@ -274,6 +279,18 @@ func (p *Parser) continueStatement() ast.Stmt {
 		p.error(continueKeyword, "Cannot use 'continue' statement outside of a loop.")
 	}
 	return ast.NewContinueStmt()
+}
+
+func (p *Parser) returnStatement() ast.Stmt {
+	returnKeyword := p.previous()
+	var value ast.Expr
+	if !p.check(t.SEMICOLON) {
+		value = p.expression()
+	}
+
+	p.consume(t.SEMICOLON, "Expect ';' after statement.")
+
+	return ast.NewReturn(returnKeyword, value)
 }
 
 func (p *Parser) assignment() ast.Expr {

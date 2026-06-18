@@ -18,6 +18,7 @@ type StmtVisitor interface {
 	VisitBreak(stmt BreakStmt) any
 	VisitContinue(stmt ContinueStmt) any
 	VisitFunc(stmt FuncStmt) any
+	VisitReturn(stmt ReturnStmt) any
 }
 
 type Block struct {
@@ -114,6 +115,22 @@ func NewPrintStmt(expr Expr) *PrintStmt {
 
 func (p PrintStmt) Accept(visitor StmtVisitor) any {
 	return visitor.VisitPrint(p)
+}
+
+type ReturnStmt struct {
+	Keyword t.Token
+	Value   Expr
+}
+
+func NewReturn(keyword t.Token, value Expr) *ReturnStmt {
+	return &ReturnStmt{
+		Keyword: keyword,
+		Value:   value,
+	}
+}
+
+func (r ReturnStmt) Accept(visitor StmtVisitor) any {
+	return visitor.VisitReturn(r)
 }
 
 type VarStmt struct {

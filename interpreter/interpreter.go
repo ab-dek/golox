@@ -123,7 +123,7 @@ func (i *interpreter) VisitIf(stmt ast.IfStmt) any {
 }
 
 func (i *interpreter) VisitFunc(stmt ast.FuncStmt) any {
-	function := NewFunction(stmt)
+	function := NewFunction(stmt, i.env)
 	i.env.Define(stmt.Name.Lexeme, function)
 	return nil
 }
@@ -132,6 +132,19 @@ func (i *interpreter) VisitPrint(stmt ast.PrintStmt) any {
 	value := i.evaluate(stmt.Expr)
 	fmt.Printf("%v \n", value)
 	return nil
+}
+
+type Return struct {
+	value any
+}
+
+func (i *interpreter) VisitReturn(stmt ast.ReturnStmt) any {
+	var value any
+	if stmt.Value != nil {
+		value = i.evaluate(stmt.Value)
+	}
+
+	panic(Return{value: value})
 }
 
 func (i *interpreter) VisitVar(stmt ast.VarStmt) any {
