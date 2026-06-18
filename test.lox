@@ -1,4 +1,5 @@
-/* var a = 1;
+/*
+var a = 1;
 while (a < 10) {
     print a;
     a = a + 1;
@@ -43,7 +44,6 @@ if (2 == 3 or true) {
 } else {
     print "falsey";
 }
-*/
 
 while (false) {
     print "hello, lox";
@@ -66,3 +66,12 @@ for (var i = 0; i < 5; i += 1) {
 }
 
 print clock();
+
+*/
+
+fun count(n) {
+    if (n > 1) count(n - 1);
+    print n;
+}
+
+count(3);

@@ -123,7 +123,9 @@ func (i *interpreter) VisitIf(stmt ast.IfStmt) any {
 }
 
 func (i *interpreter) VisitFunc(stmt ast.FuncStmt) any {
-	panic("unimplemented")
+	function := NewFunction(stmt)
+	i.env.Define(stmt.Name.Lexeme, function)
+	return nil
 }
 
 func (i *interpreter) VisitPrint(stmt ast.PrintStmt) any {
