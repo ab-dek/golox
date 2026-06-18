@@ -11,12 +11,17 @@ import (
 )
 
 type interpreter struct {
-	env *e.Environment
+	env    *e.Environment
+	global *e.Environment
 }
 
 func NewInterpreter() *interpreter {
+	global := e.NewEnv(nil)
+	global.Define("clock", clock{})
+
 	return &interpreter{
-		env: e.NewEnv(nil),
+		env:    global,
+		global: global,
 	}
 }
 
@@ -115,6 +120,10 @@ func (i *interpreter) VisitIf(stmt ast.IfStmt) any {
 	}
 
 	return nil
+}
+
+func (i *interpreter) VisitFunc(stmt ast.FuncStmt) any {
+	panic("unimplemented")
 }
 
 func (i *interpreter) VisitPrint(stmt ast.PrintStmt) any {

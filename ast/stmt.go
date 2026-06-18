@@ -17,6 +17,7 @@ type StmtVisitor interface {
 	VisitWhile(stmt WhileStmt) any
 	VisitBreak(stmt BreakStmt) any
 	VisitContinue(stmt ContinueStmt) any
+	VisitFunc(stmt FuncStmt) any
 }
 
 type Block struct {
@@ -81,6 +82,24 @@ func NewIfStmt(condition Expr, thenBlock, elseBlock Stmt) *IfStmt {
 
 func (i IfStmt) Accept(visitor StmtVisitor) any {
 	return visitor.VisitIf(i)
+}
+
+type FuncStmt struct {
+	Name   t.Token
+	Params []t.Token
+	Body   []Stmt
+}
+
+func NewFunc(name t.Token, params []t.Token, body []Stmt) *FuncStmt {
+	return &FuncStmt{
+		Name:   name,
+		Params: params,
+		Body:   body,
+	}
+}
+
+func (f FuncStmt) Accept(visitor StmtVisitor) any {
+	return visitor.VisitFunc(f)
 }
 
 type PrintStmt struct {

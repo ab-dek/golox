@@ -13,8 +13,12 @@ grammmer:
 
 program→ declaration* EOF ;
 declaration→ varDecl
+			 | funcDecl
 			 | statement ;
 varDecl→ "var" IDENTIFIER ( "=" expression )? ";" ;
+funDecl→ "fun" function ;
+function→ IDENTIFIER "(" parameters? ")" block ;
+parameters→ IDENTIFIER ( "," IDENTIFIER )* ;
 statement→ exprStmt
 		   | printStmt
 		   | ifStmt
@@ -92,6 +96,9 @@ func (p *Parser) declaration() ast.Stmt {
 	if p.match(t.VAR) {
 		return p.varDeclaration()
 	}
+	if p.match(t.FUN) {
+		return p.funDeclaration("function")
+	}
 	return p.statement()
 }
 
@@ -103,6 +110,28 @@ func (p *Parser) varDeclaration() ast.Stmt {
 	}
 	p.consume(t.SEMICOLON, "Expect ';' after variable declaration.")
 	return ast.NewVarStmt(name, initializer)
+}
+
+func (p *Parser) funDeclaration(kind string) ast.Stmt {
+	name := p.consume(t.IDENTIFIER, fmt.Sprintf("Expect a %v name.", kind))
+	p.consume(t.LEFT_PAREN, "Expect a '(' after function name.")
+
+	var parameters []t.Token
+	if !p.check(t.RIGHT_PAREN) {
+		parameters = append(parameters, p.consume(t.IDENTIFIER, "Expect parameter name."))
+		for p.match(t.COMMA) {
+			if len(parameters) >= 255 {
+				errs.ParseError(p.peek(), "Can't have more than 255 parameters")
+			}
+			parameters = append(parameters, p.consume(t.IDENTIFIER, "Expect parameter name."))
+		}
+	}
+	p.consume(t.RIGHT_PAREN, "Expect ')' after parameters.")
+
+	p.consume(t.LEFT_BRACE, fmt.Sprintf("Expect '{' before %v body.", kind))
+	block := p.block()
+
+	return ast.NewFunc(name, parameters, block)
 }
 
 func (p *Parser) statement() ast.Stmt {
