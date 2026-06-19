@@ -65,3 +65,7 @@ func (r *RPN) VisitTernary(expr Ternary) any {
 	Else := expr.Else.Accept(r).(string)
 	return fmt.Sprintf("%s %s %s", condition, then, Else)
 }
+
+func (r *RPN) VisitFuncExpr(expr FuncExpr) any {
+	panic("unimplemented")
+}

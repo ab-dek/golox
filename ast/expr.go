@@ -18,6 +18,7 @@ type ExprVisitor interface {
 	VisitCall(expr Call) any
 	VisitVariable(expr Variable) any
 	VisitTernary(expr Ternary) any
+	VisitFuncExpr(expr FuncExpr) any
 }
 
 type Assignment struct {
@@ -166,4 +167,20 @@ func NewTernary(condition, thenBranch, elseBranch Expr, question t.Token) *Terna
 
 func (t Ternary) Accept(visitor ExprVisitor) any {
 	return visitor.VisitTernary(t)
+}
+
+type FuncExpr struct {
+	Params []t.Token
+	Body   []Stmt
+}
+
+func NewFuncExpr(params []t.Token, body []Stmt) *FuncExpr {
+	return &FuncExpr{
+		Params: params,
+		Body:   body,
+	}
+}
+
+func (f FuncExpr) Accept(visitor ExprVisitor) any {
+	return visitor.VisitFuncExpr(f)
 }

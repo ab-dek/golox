@@ -16,8 +16,8 @@ declaration→ varDecl
 			 | funcDecl
 			 | statement ;
 varDecl→ "var" IDENTIFIER ( "=" expression )? ";" ;
-funDecl→ "fun" function ;
-function→ IDENTIFIER "(" parameters? ")" block ;
+funDecl→ "fun" IDENTIFIER funExpr ;
+funcExpr→ "(" parameters? ")" block ;
 parameters→ IDENTIFIER ( "," IDENTIFIER )* ;
 statement→ exprStmt
 		   | printStmt
@@ -53,7 +53,8 @@ call→ primary ( "(" arguments? ")" )* ;
 argument→ expression ( "," expression )* ;
 primary→ NUMBER | STRING | "true" | "false" | "nil"
 		 | "(" expression ")"
-| IDENTIFIER ;
+| IDENTIFIER
+| "fun" funExpr ;
 */
 
 type Parser struct {
@@ -98,7 +99,8 @@ func (p *Parser) declaration() ast.Stmt {
 	if p.match(t.VAR) {
 		return p.varDeclaration()
 	}
-	if p.match(t.FUN) {
+	if p.check(t.FUN) && p.checkNext(t.IDENTIFIER) {
+		p.consume(t.FUN, "")
 		return p.funDeclaration("function")
 	}
 	return p.statement()
@@ -116,24 +118,8 @@ func (p *Parser) varDeclaration() ast.Stmt {
 
 func (p *Parser) funDeclaration(kind string) ast.Stmt {
 	name := p.consume(t.IDENTIFIER, fmt.Sprintf("Expect a %v name.", kind))
-	p.consume(t.LEFT_PAREN, "Expect a '(' after function name.")
 
-	var parameters []t.Token
-	if !p.check(t.RIGHT_PAREN) {
-		parameters = append(parameters, p.consume(t.IDENTIFIER, "Expect parameter name."))
-		for p.match(t.COMMA) {
-			if len(parameters) >= 255 {
-				errs.ParseError(p.peek(), "Can't have more than 255 parameters")
-			}
-			parameters = append(parameters, p.consume(t.IDENTIFIER, "Expect parameter name."))
-		}
-	}
-	p.consume(t.RIGHT_PAREN, "Expect ')' after parameters.")
-
-	p.consume(t.LEFT_BRACE, fmt.Sprintf("Expect '{' before %v body.", kind))
-	block := p.block()
-
-	return ast.NewFunc(name, parameters, block)
+	return ast.NewFunc(name, p.funExpr(kind))
 }
 
 func (p *Parser) statement() ast.Stmt {
@@ -465,6 +451,27 @@ func (p *Parser) finishCall(callee ast.Expr) ast.Expr {
 	return ast.NewCall(callee, rightParen, arguments)
 }
 
+func (p *Parser) funExpr(kind string) ast.FuncExpr {
+	p.consume(t.LEFT_PAREN, "Expect a '(' after function name.")
+
+	var parameters []t.Token
+	if !p.check(t.RIGHT_PAREN) {
+		parameters = append(parameters, p.consume(t.IDENTIFIER, "Expect parameter name."))
+		for p.match(t.COMMA) {
+			if len(parameters) >= 255 {
+				errs.ParseError(p.peek(), "Can't have more than 255 parameters")
+			}
+			parameters = append(parameters, p.consume(t.IDENTIFIER, "Expect parameter name."))
+		}
+	}
+	p.consume(t.RIGHT_PAREN, "Expect ')' after parameters.")
+
+	p.consume(t.LEFT_BRACE, fmt.Sprintf("Expect '{' before %v body.", kind))
+	block := p.block()
+
+	return *ast.NewFuncExpr(parameters, block)
+}
+
 func (p *Parser) primary() ast.Expr {
 	switch {
 	case p.match(t.FALSE):
@@ -481,6 +488,8 @@ func (p *Parser) primary() ast.Expr {
 		expr := p.expression()
 		p.consume(t.RIGHT_PAREN, "Expect ')' after expression.")
 		return ast.NewGrouping(expr)
+	case p.match(t.FUN):
+		return p.funExpr("function")
 	}
 	p.error(p.peek(), "Expect expression.")
 	return nil
@@ -501,6 +510,13 @@ func (p *Parser) check(tokenType t.TokenType) bool {
 		return false
 	}
 	return p.peek().TokenType == tokenType
+}
+
+func (p *Parser) checkNext(tokenType t.TokenType) bool {
+	if p.isAtEnd() {
+		return false
+	}
+	return p.tokens[p.current+1].TokenType == tokenType
 }
 
 func (p *Parser) advance() t.Token {

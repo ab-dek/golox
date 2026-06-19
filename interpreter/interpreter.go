@@ -305,6 +305,10 @@ func (i *interpreter) VisitTernary(expr ast.Ternary) any {
 	return i.evaluate(expr.Else)
 }
 
+func (i *interpreter) VisitFuncExpr(expr ast.FuncExpr) any {
+	return NewFunction(ast.FuncStmt{Function: expr}, i.env)
+}
+
 func (i *interpreter) isTruthy(value any) bool {
 	if value == nil {
 		return false

@@ -55,6 +55,10 @@ func (p *printer) VisitTernary(expr Ternary) any {
 	return p.parenthesize("? :", expr.Condition, expr.Then, expr.Else)
 }
 
+func (p *printer) VisitFuncExpr(expr FuncExpr) any {
+	panic("unimplemented")
+}
+
 func (p *printer) parenthesize(name string, exprs ...Expr) string {
 	var builder strings.Builder
 

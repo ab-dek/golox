@@ -31,17 +31,17 @@ func (f Function) call(i *interpreter, arguments []any) (result any) {
 	}()
 
 	env := e.NewEnv(f.Closure)
-	for i, param := range f.Params {
+	for i, param := range f.Function.Params {
 		env.Define(param.Lexeme, arguments[i])
 	}
 
-	i.executeBlock(f.Body, env)
+	i.executeBlock(f.Function.Body, env)
 
 	return nil
 }
 
 func (f Function) arity() int {
-	return len(f.Params)
+	return len(f.Function.Params)
 }
 
 func (f Function) ToString() string {

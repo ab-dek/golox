@@ -86,16 +86,14 @@ func (i IfStmt) Accept(visitor StmtVisitor) any {
 }
 
 type FuncStmt struct {
-	Name   t.Token
-	Params []t.Token
-	Body   []Stmt
+	Name     t.Token
+	Function FuncExpr
 }
 
-func NewFunc(name t.Token, params []t.Token, body []Stmt) *FuncStmt {
+func NewFunc(name t.Token, function FuncExpr) *FuncStmt {
 	return &FuncStmt{
-		Name:   name,
-		Params: params,
-		Body:   body,
+		Name:     name,
+		Function: function,
 	}
 }
 
