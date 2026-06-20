@@ -53,7 +53,8 @@ func (r *Resolver) VisitContinue(stmt ast.ContinueStmt) any {
 
 // VisitExpr implements [ast.StmtVisitor].
 func (r *Resolver) VisitExpr(stmt ast.ExprStmt) any {
-	panic("unimplemented")
+	r.resolveExpr(stmt.Expr)
+	return nil
 }
 
 // VisitFuncStmt implements [ast.StmtVisitor].
@@ -61,24 +62,36 @@ func (r *Resolver) VisitFuncStmt(stmt ast.FuncStmt) any {
 	r.declare(stmt.Name)
 	r.define(stmt.Name)
 
-	r.resolveFunction(stmt)
+	r.resolveFunction(stmt.Function)
 
 	return nil
 }
 
 // VisitIf implements [ast.StmtVisitor].
 func (r *Resolver) VisitIf(stmt ast.IfStmt) any {
-	panic("unimplemented")
+	r.resolveExpr(stmt.Condition)
+	r.resolveStmt(stmt.Then)
+
+	if stmt.Else != nil {
+		r.resolveStmt(stmt.Else)
+	}
+
+	return nil
 }
 
 // VisitPrint implements [ast.StmtVisitor].
 func (r *Resolver) VisitPrint(stmt ast.PrintStmt) any {
-	panic("unimplemented")
+	r.resolveExpr(stmt.Expr)
+	return nil
 }
 
 // VisitReturn implements [ast.StmtVisitor].
 func (r *Resolver) VisitReturn(stmt ast.ReturnStmt) any {
-	panic("unimplemented")
+	if stmt.Value != nil {
+		r.resolveExpr(stmt.Value)
+	}
+
+	return nil
 }
 
 // VisitVar implements [ast.StmtVisitor].
@@ -93,7 +106,10 @@ func (r *Resolver) VisitVar(stmt ast.VarStmt) any {
 
 // VisitWhile implements [ast.StmtVisitor].
 func (r *Resolver) VisitWhile(stmt ast.WhileStmt) any {
-	panic("unimplemented")
+	r.resolveExpr(stmt.Condition)
+	r.resolveStmt(stmt.Body)
+
+	return nil
 }
 
 // VisitAssignment implements [ast.ExprVisitor].
@@ -106,42 +122,62 @@ func (r *Resolver) VisitAssignment(expr ast.Assignment) any {
 
 // VisitBinary implements [ast.ExprVisitor].
 func (r *Resolver) VisitBinary(expr ast.Binary) any {
-	panic("unimplemented")
+	r.resolveExpr(expr.Left)
+	r.resolveExpr(expr.Right)
+
+	return nil
 }
 
 // VisitCall implements [ast.ExprVisitor].
 func (r *Resolver) VisitCall(expr ast.Call) any {
-	panic("unimplemented")
+	r.resolveExpr(expr.Callee)
+
+	for _, arg := range expr.Arguments {
+		r.resolveExpr(arg)
+	}
+
+	return nil
 }
 
 // VisitFuncExpr implements [ast.ExprVisitor].
 func (r *Resolver) VisitFuncExpr(expr ast.FuncExpr) any {
-	panic("unimplemented")
+	r.resolveFunction(expr)
+
+	return nil
 }
 
 // VisitGrouping implements [ast.ExprVisitor].
 func (r *Resolver) VisitGrouping(expr ast.Grouping) any {
-	panic("unimplemented")
+	r.resolveExpr(expr.Expression)
+	return nil
 }
 
 // VisitLiteral implements [ast.ExprVisitor].
 func (r *Resolver) VisitLiteral(expr ast.Literal) any {
-	panic("unimplemented")
+	return nil
 }
 
 // VisitLogical implements [ast.ExprVisitor].
 func (r *Resolver) VisitLogical(expr ast.Logical) any {
-	panic("unimplemented")
+	r.resolveExpr(expr.Left)
+	r.resolveExpr(expr.Right)
+
+	return nil
 }
 
 // VisitTernary implements [ast.ExprVisitor].
 func (r *Resolver) VisitTernary(expr ast.Ternary) any {
-	panic("unimplemented")
+	r.resolveExpr(expr.Condition)
+	r.resolveExpr(expr.Else)
+	r.resolveExpr(expr.Then)
+
+	return nil
 }
 
 // VisitUnary implements [ast.ExprVisitor].
 func (r *Resolver) VisitUnary(expr ast.Unary) any {
-	panic("unimplemented")
+	r.resolveExpr(expr.Right)
+	return nil
 }
 
 // VisitVariable implements [ast.ExprVisitor].
@@ -193,14 +229,14 @@ func (r *Resolver) resolveLocal(expr ast.Expr, name t.Token) {
 	}
 }
 
-func (r *Resolver) resolveFunction(function ast.FuncStmt) {
+func (r *Resolver) resolveFunction(function ast.FuncExpr) {
 	r.beginScope()
 
-	for _, param := range function.Function.Params {
+	for _, param := range function.Params {
 		r.declare(param)
 		r.define(param)
 	}
 
-	r.ResolveStmts(function.Function.Body)
+	r.ResolveStmts(function.Body)
 	r.endScope()
 }
