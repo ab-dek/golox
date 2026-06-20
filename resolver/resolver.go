@@ -2,8 +2,10 @@ package resolver
 
 import (
 	"github.com/ab-dek/golox/ast"
+	errs "github.com/ab-dek/golox/errors"
 	i "github.com/ab-dek/golox/interpreter"
 	s "github.com/ab-dek/golox/stack"
+	t "github.com/ab-dek/golox/token"
 )
 
 type Resolver struct {
@@ -17,7 +19,7 @@ func NewResolver(interpreter *i.Interpreter) *Resolver {
 	}
 }
 
-func (r *Resolver) Resolve(stmts []ast.Stmt) {
+func (r *Resolver) ResolveStmts(stmts []ast.Stmt) {
 	for _, stmt := range stmts {
 		r.resolveStmt(stmt)
 	}
@@ -33,7 +35,7 @@ func (r *Resolver) resolveExpr(expr ast.Expr) {
 
 func (r *Resolver) VisitBlock(stmt ast.Block) any {
 	r.beginScope()
-	r.Resolve(stmt.Statements)
+	r.ResolveStmts(stmt.Statements)
 	r.endScope()
 
 	return nil
@@ -54,9 +56,14 @@ func (r *Resolver) VisitExpr(stmt ast.ExprStmt) any {
 	panic("unimplemented")
 }
 
-// VisitFunc implements [ast.StmtVisitor].
-func (r *Resolver) VisitFunc(stmt ast.FuncStmt) any {
-	panic("unimplemented")
+// VisitFuncStmt implements [ast.StmtVisitor].
+func (r *Resolver) VisitFuncStmt(stmt ast.FuncStmt) any {
+	r.declare(stmt.Name)
+	r.define(stmt.Name)
+
+	r.resolveFunction(stmt)
+
+	return nil
 }
 
 // VisitIf implements [ast.StmtVisitor].
@@ -76,7 +83,12 @@ func (r *Resolver) VisitReturn(stmt ast.ReturnStmt) any {
 
 // VisitVar implements [ast.StmtVisitor].
 func (r *Resolver) VisitVar(stmt ast.VarStmt) any {
-	panic("unimplemented")
+	r.declare(stmt.Name)
+	if stmt.Initializer != nil {
+		r.resolveExpr(stmt.Initializer)
+	}
+	r.define(stmt.Name)
+	return nil
 }
 
 // VisitWhile implements [ast.StmtVisitor].
@@ -86,7 +98,10 @@ func (r *Resolver) VisitWhile(stmt ast.WhileStmt) any {
 
 // VisitAssignment implements [ast.ExprVisitor].
 func (r *Resolver) VisitAssignment(expr ast.Assignment) any {
-	panic("unimplemented")
+	r.resolveExpr(expr.Value)
+	r.resolveLocal(expr, expr.Name)
+
+	return nil
 }
 
 // VisitBinary implements [ast.ExprVisitor].
@@ -131,12 +146,61 @@ func (r *Resolver) VisitUnary(expr ast.Unary) any {
 
 // VisitVariable implements [ast.ExprVisitor].
 func (r *Resolver) VisitVariable(expr ast.Variable) any {
-	panic("unimplemented")
+	scope, err := r.scopes.Peek()
+	if err == nil && scope[expr.Name.Lexeme] == false {
+		errMsg := errs.ParseError(expr.Name, "Can't read local variable in its own initializer.")
+		errs.ReportError(errMsg)
+	}
+
+	r.resolveLocal(expr, expr.Name)
+
+	return nil
 }
+
 func (r *Resolver) beginScope() {
 	r.scopes.Push(make(scope))
 }
 
 func (r *Resolver) endScope() {
 	r.scopes.Pop()
+}
+
+func (r *Resolver) declare(name t.Token) {
+	if r.scopes.IsEmpty() {
+		return
+	}
+
+	scope, _ := r.scopes.Peek()
+	scope[name.Lexeme] = false
+}
+
+func (r *Resolver) define(name t.Token) {
+	if r.scopes.IsEmpty() {
+		return
+	}
+
+	scope, _ := r.scopes.Peek()
+	scope[name.Lexeme] = true
+}
+
+func (r *Resolver) resolveLocal(expr ast.Expr, name t.Token) {
+	lenStack := r.scopes.Size()
+	for i := lenStack - 1; i >= 0; i-- {
+		scope, _ := r.scopes.Get(i)
+		if _, ok := scope[name.Lexeme]; ok {
+			r.interpreter.Resolve(expr, lenStack)
+		}
+	}
+}
+
+func (r *Resolver) resolveFunction(function ast.FuncStmt) {
+	r.beginScope()
+
+	for _, param := range function.Function.Params {
+		r.declare(param)
+		r.define(param)
+	}
+
+	r.ResolveStmts(function.Function.Body)
+	r.endScope()
 }

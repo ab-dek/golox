@@ -122,7 +122,7 @@ func (i *Interpreter) VisitIf(stmt ast.IfStmt) any {
 	return nil
 }
 
-func (i *Interpreter) VisitFunc(stmt ast.FuncStmt) any {
+func (i *Interpreter) VisitFuncStmt(stmt ast.FuncStmt) any {
 	function := NewFunction(stmt, i.env)
 	i.env.Define(stmt.Name.Lexeme, function)
 	return nil

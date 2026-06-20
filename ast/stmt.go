@@ -17,7 +17,7 @@ type StmtVisitor interface {
 	VisitWhile(stmt WhileStmt) any
 	VisitBreak(stmt BreakStmt) any
 	VisitContinue(stmt ContinueStmt) any
-	VisitFunc(stmt FuncStmt) any
+	VisitFuncStmt(stmt FuncStmt) any
 	VisitReturn(stmt ReturnStmt) any
 }
 
@@ -98,7 +98,7 @@ func NewFunc(name t.Token, function FuncExpr) *FuncStmt {
 }
 
 func (f FuncStmt) Accept(visitor StmtVisitor) any {
-	return visitor.VisitFunc(f)
+	return visitor.VisitFuncStmt(f)
 }
 
 type PrintStmt struct {
