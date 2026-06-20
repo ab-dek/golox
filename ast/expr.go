@@ -16,7 +16,7 @@ type ExprVisitor interface {
 	VisitLogical(expr Logical) any
 	VisitUnary(expr Unary) any
 	VisitCall(expr Call) any
-	VisitVariable(expr Variable) any
+	VisitVarExpr(expr VarExpr) any
 	VisitTernary(expr Ternary) any
 	VisitFuncExpr(expr FuncExpr) any
 }
@@ -135,18 +135,18 @@ func (u Unary) Accept(visitor ExprVisitor) any {
 	return visitor.VisitUnary(u)
 }
 
-type Variable struct {
+type VarExpr struct {
 	Name t.Token
 }
 
-func NewVariable(name t.Token) *Variable {
-	return &Variable{
+func NewVariable(name t.Token) *VarExpr {
+	return &VarExpr{
 		Name: name,
 	}
 }
 
-func (v Variable) Accept(visitor ExprVisitor) any {
-	return visitor.VisitVariable(v)
+func (v VarExpr) Accept(visitor ExprVisitor) any {
+	return visitor.VisitVarExpr(v)
 }
 
 type Ternary struct {

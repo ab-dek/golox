@@ -43,12 +43,12 @@ func (r *Resolver) VisitBlock(stmt ast.Block) any {
 
 // VisitBreak implements [ast.StmtVisitor].
 func (r *Resolver) VisitBreak(stmt ast.BreakStmt) any {
-	panic("unimplemented")
+	return nil
 }
 
 // VisitContinue implements [ast.StmtVisitor].
 func (r *Resolver) VisitContinue(stmt ast.ContinueStmt) any {
-	panic("unimplemented")
+	return nil
 }
 
 // VisitExpr implements [ast.StmtVisitor].
@@ -94,8 +94,8 @@ func (r *Resolver) VisitReturn(stmt ast.ReturnStmt) any {
 	return nil
 }
 
-// VisitVar implements [ast.StmtVisitor].
-func (r *Resolver) VisitVar(stmt ast.VarStmt) any {
+// VisitVarStmt implements [ast.StmtVisitor].
+func (r *Resolver) VisitVarStmt(stmt ast.VarStmt) any {
 	r.declare(stmt.Name)
 	if stmt.Initializer != nil {
 		r.resolveExpr(stmt.Initializer)
@@ -180,8 +180,8 @@ func (r *Resolver) VisitUnary(expr ast.Unary) any {
 	return nil
 }
 
-// VisitVariable implements [ast.ExprVisitor].
-func (r *Resolver) VisitVariable(expr ast.Variable) any {
+// VisitVarExpr implements [ast.ExprVisitor].
+func (r *Resolver) VisitVarExpr(expr ast.VarExpr) any {
 	scope, err := r.scopes.Peek()
 	if err == nil && scope[expr.Name.Lexeme] == false {
 		errMsg := errs.ParseError(expr.Name, "Can't read local variable in its own initializer.")
@@ -224,7 +224,7 @@ func (r *Resolver) resolveLocal(expr ast.Expr, name t.Token) {
 	for i := lenStack - 1; i >= 0; i-- {
 		scope, _ := r.scopes.Get(i)
 		if _, ok := scope[name.Lexeme]; ok {
-			r.interpreter.Resolve(expr, lenStack)
+			r.interpreter.Resolve(expr, lenStack-1-i)
 		}
 	}
 }

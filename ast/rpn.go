@@ -55,7 +55,7 @@ func (r *RPN) VisitCall(expr Call) any {
 	panic("unimplemented")
 }
 
-func (r *RPN) VisitVariable(expr Variable) any {
+func (r *RPN) VisitVarExpr(expr VarExpr) any {
 	panic("unimplemented")
 }
 

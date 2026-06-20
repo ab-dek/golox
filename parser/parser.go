@@ -285,7 +285,7 @@ func (p *Parser) assignment() ast.Expr {
 	case p.match(t.EQUAL):
 		equals := p.previous()
 		value := p.assignment()
-		if variable, ok := expr.(*ast.Variable); ok {
+		if variable, ok := expr.(*ast.VarExpr); ok {
 			return ast.NewAssignment(variable.Name, value)
 		}
 
@@ -293,7 +293,7 @@ func (p *Parser) assignment() ast.Expr {
 	case p.match(t.PLUS_EQUAL):
 		equals := p.previous()
 		value := p.assignment()
-		if variable, ok := expr.(*ast.Variable); ok {
+		if variable, ok := expr.(*ast.VarExpr); ok {
 			addition := ast.NewBinary(variable, value, *t.NewToken(t.PLUS, "+", "", equals.Line))
 			return ast.NewAssignment(variable.Name, addition)
 		}
@@ -302,7 +302,7 @@ func (p *Parser) assignment() ast.Expr {
 	case p.match(t.MINUS_EQUAL):
 		equals := p.previous()
 		value := p.assignment()
-		if variable, ok := expr.(*ast.Variable); ok {
+		if variable, ok := expr.(*ast.VarExpr); ok {
 			subtraction := ast.NewBinary(variable, value, *t.NewToken(t.MINUS, "-", "", equals.Line))
 			return ast.NewAssignment(variable.Name, subtraction)
 		}
@@ -311,7 +311,7 @@ func (p *Parser) assignment() ast.Expr {
 	case p.match(t.STAR_EQUAL):
 		equals := p.previous()
 		value := p.assignment()
-		if variable, ok := expr.(*ast.Variable); ok {
+		if variable, ok := expr.(*ast.VarExpr); ok {
 			multiplication := ast.NewBinary(variable, value, *t.NewToken(t.STAR, "*", "", equals.Line))
 			return ast.NewAssignment(variable.Name, multiplication)
 		}
@@ -320,7 +320,7 @@ func (p *Parser) assignment() ast.Expr {
 	case p.match(t.SLASH_EQUAL):
 		equals := p.previous()
 		value := p.assignment()
-		if variable, ok := expr.(*ast.Variable); ok {
+		if variable, ok := expr.(*ast.VarExpr); ok {
 			addition := ast.NewBinary(variable, value, *t.NewToken(t.SLASH, "/", "", equals.Line))
 			return ast.NewAssignment(variable.Name, addition)
 		}

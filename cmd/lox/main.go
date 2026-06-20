@@ -9,6 +9,7 @@ import (
 	errs "github.com/ab-dek/golox/errors"
 	i "github.com/ab-dek/golox/interpreter"
 	p "github.com/ab-dek/golox/parser"
+	r "github.com/ab-dek/golox/resolver"
 	sc "github.com/ab-dek/golox/scanner"
 	t "github.com/ab-dek/golox/token"
 )
@@ -87,9 +88,17 @@ func run(source string) {
 	parser := p.NewParser(tokens)
 	stmts := parser.Parse()
 
+	if errs.HadError {
+		return
+	}
+
 	// printer := e.NewPrinter()
 	// fmt.Println(printer.Print(expr))
 
 	interpreter := i.NewInterpreter()
+
+	resolver := r.NewResolver(interpreter)
+	resolver.ResolveStmts(stmts)
+
 	interpreter.Interpret(stmts)
 }

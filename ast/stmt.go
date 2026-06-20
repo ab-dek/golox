@@ -12,7 +12,7 @@ type StmtVisitor interface {
 	VisitBlock(stmt Block) any
 	VisitExpr(stmt ExprStmt) any
 	VisitPrint(stmt PrintStmt) any
-	VisitVar(stmt VarStmt) any
+	VisitVarStmt(stmt VarStmt) any
 	VisitIf(stmt IfStmt) any
 	VisitWhile(stmt WhileStmt) any
 	VisitBreak(stmt BreakStmt) any
@@ -144,7 +144,7 @@ func NewVarStmt(token t.Token, initializer Expr) *VarStmt {
 }
 
 func (v VarStmt) Accept(visitor StmtVisitor) any {
-	return visitor.VisitVar(v)
+	return visitor.VisitVarStmt(v)
 }
 
 type BreakStmt struct{}

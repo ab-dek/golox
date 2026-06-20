@@ -13,6 +13,7 @@ import (
 type Interpreter struct {
 	env    *e.Environment
 	global *e.Environment
+	locals map[ast.Expr]int
 }
 
 func NewInterpreter() *Interpreter {
@@ -22,6 +23,7 @@ func NewInterpreter() *Interpreter {
 	return &Interpreter{
 		env:    global,
 		global: global,
+		locals: make(map[ast.Expr]int),
 	}
 }
 
@@ -77,6 +79,10 @@ func (i *Interpreter) executeLoop(stmt ast.Stmt) any {
 
 func (i *Interpreter) evaluate(expr ast.Expr) any {
 	return expr.Accept(i)
+}
+
+func (i *Interpreter) Resolve(expr ast.Expr, depth int) {
+	i.locals[expr] = depth
 }
 
 func (i *Interpreter) VisitBlock(stmt ast.Block) any {
@@ -147,7 +153,7 @@ func (i *Interpreter) VisitReturn(stmt ast.ReturnStmt) any {
 	panic(Return{value: value})
 }
 
-func (i *Interpreter) VisitVar(stmt ast.VarStmt) any {
+func (i *Interpreter) VisitVarStmt(stmt ast.VarStmt) any {
 	var value any
 	if stmt.Initializer != nil {
 		value = i.evaluate(stmt.Initializer)
@@ -170,7 +176,12 @@ func (i *Interpreter) VisitContinue(stmt ast.ContinueStmt) any {
 
 func (i *Interpreter) VisitAssignment(expr ast.Assignment) any {
 	value := i.evaluate(expr.Value)
-	i.env.Assign(expr.Name, value)
+	if distance, ok := i.locals[expr]; ok {
+		i.env.AssignAt(distance, expr.Name, value)
+	} else {
+		i.global.Assign(expr.Name, value)
+	}
+
 	return value
 }
 
@@ -293,8 +304,8 @@ func (i *Interpreter) VisitCall(expr ast.Call) any {
 	return function.call(i, arguments)
 }
 
-func (i *Interpreter) VisitVariable(expr ast.Variable) any {
-	return i.env.Get(expr.Name)
+func (i *Interpreter) VisitVarExpr(expr ast.VarExpr) any {
+	return i.lookUpVariable(expr.Name, expr)
 }
 
 func (i *Interpreter) VisitTernary(expr ast.Ternary) any {
@@ -337,4 +348,13 @@ func (i *Interpreter) checkNumberOperands(operator t.Token, right, left any) {
 	}
 	errMsg := errs.RuntimeError(operator, "Operand must be a number.")
 	panic(errMsg)
+}
+
+func (i *Interpreter) lookUpVariable(name t.Token, expr ast.VarExpr) any {
+	if distance, ok := i.locals[expr]; ok {
+		return i.env.GetAt(distance, name.Lexeme)
+	} else {
+		return i.global.Get(name)
+	}
+
 }

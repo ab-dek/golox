@@ -47,7 +47,7 @@ func (p *printer) VisitCall(expr Call) any {
 	panic("unimplemented")
 }
 
-func (p *printer) VisitVariable(expr Variable) any {
+func (p *printer) VisitVarExpr(expr VarExpr) any {
 	panic("unimplemented")
 }
 
