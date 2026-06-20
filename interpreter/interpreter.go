@@ -10,22 +10,22 @@ import (
 	t "github.com/ab-dek/golox/token"
 )
 
-type interpreter struct {
+type Interpreter struct {
 	env    *e.Environment
 	global *e.Environment
 }
 
-func NewInterpreter() *interpreter {
+func NewInterpreter() *Interpreter {
 	global := e.NewEnv(nil)
 	global.Define("clock", clock{})
 
-	return &interpreter{
+	return &Interpreter{
 		env:    global,
 		global: global,
 	}
 }
 
-func (i *interpreter) Interpret(stmts []ast.Stmt) {
+func (i *Interpreter) Interpret(stmts []ast.Stmt) {
 	defer func() {
 		if err := recover(); err != nil {
 			fmt.Printf("%v \n", err)
@@ -36,7 +36,7 @@ func (i *interpreter) Interpret(stmts []ast.Stmt) {
 	}
 }
 
-func (i *interpreter) EvalExpr(expr ast.Expr) any {
+func (i *Interpreter) EvalExpr(expr ast.Expr) any {
 	defer func() {
 		if err := recover(); err != nil {
 			fmt.Printf("%v \n", err)
@@ -45,11 +45,11 @@ func (i *interpreter) EvalExpr(expr ast.Expr) any {
 	return i.evaluate(expr)
 }
 
-func (i *interpreter) execute(stmt ast.Stmt) {
+func (i *Interpreter) execute(stmt ast.Stmt) {
 	stmt.Accept(i)
 }
 
-func (i *interpreter) executeBlock(statements []ast.Stmt, env *e.Environment) {
+func (i *Interpreter) executeBlock(statements []ast.Stmt, env *e.Environment) {
 	previous := i.env
 	defer func() {
 		i.env = previous
@@ -61,7 +61,7 @@ func (i *interpreter) executeBlock(statements []ast.Stmt, env *e.Environment) {
 	}
 }
 
-func (i *interpreter) executeLoop(stmt ast.Stmt) any {
+func (i *Interpreter) executeLoop(stmt ast.Stmt) any {
 	defer func() {
 		if err := recover(); err != nil {
 			if _, ok := err.(Continue); !ok {
@@ -75,21 +75,21 @@ func (i *interpreter) executeLoop(stmt ast.Stmt) any {
 	return nil
 }
 
-func (i *interpreter) evaluate(expr ast.Expr) any {
+func (i *Interpreter) evaluate(expr ast.Expr) any {
 	return expr.Accept(i)
 }
 
-func (i *interpreter) VisitBlock(stmt ast.Block) any {
+func (i *Interpreter) VisitBlock(stmt ast.Block) any {
 	i.executeBlock(stmt.Statements, e.NewEnv(i.env))
 	return nil
 }
 
-func (i *interpreter) VisitExpr(stmt ast.ExprStmt) any {
+func (i *Interpreter) VisitExpr(stmt ast.ExprStmt) any {
 	i.evaluate(stmt.Expr)
 	return nil
 }
 
-func (i *interpreter) VisitWhile(stmt ast.WhileStmt) any {
+func (i *Interpreter) VisitWhile(stmt ast.WhileStmt) any {
 	defer func() {
 		if err := recover(); err != nil {
 			if _, ok := err.(Break); !ok {
@@ -110,7 +110,7 @@ func (i *interpreter) VisitWhile(stmt ast.WhileStmt) any {
 	return nil
 }
 
-func (i *interpreter) VisitIf(stmt ast.IfStmt) any {
+func (i *Interpreter) VisitIf(stmt ast.IfStmt) any {
 	condition := i.evaluate(stmt.Condition)
 
 	if i.isTruthy(condition) {
@@ -122,13 +122,13 @@ func (i *interpreter) VisitIf(stmt ast.IfStmt) any {
 	return nil
 }
 
-func (i *interpreter) VisitFunc(stmt ast.FuncStmt) any {
+func (i *Interpreter) VisitFunc(stmt ast.FuncStmt) any {
 	function := NewFunction(stmt, i.env)
 	i.env.Define(stmt.Name.Lexeme, function)
 	return nil
 }
 
-func (i *interpreter) VisitPrint(stmt ast.PrintStmt) any {
+func (i *Interpreter) VisitPrint(stmt ast.PrintStmt) any {
 	value := i.evaluate(stmt.Expr)
 	fmt.Printf("%v \n", value)
 	return nil
@@ -138,7 +138,7 @@ type Return struct {
 	value any
 }
 
-func (i *interpreter) VisitReturn(stmt ast.ReturnStmt) any {
+func (i *Interpreter) VisitReturn(stmt ast.ReturnStmt) any {
 	var value any
 	if stmt.Value != nil {
 		value = i.evaluate(stmt.Value)
@@ -147,7 +147,7 @@ func (i *interpreter) VisitReturn(stmt ast.ReturnStmt) any {
 	panic(Return{value: value})
 }
 
-func (i *interpreter) VisitVar(stmt ast.VarStmt) any {
+func (i *Interpreter) VisitVar(stmt ast.VarStmt) any {
 	var value any
 	if stmt.Initializer != nil {
 		value = i.evaluate(stmt.Initializer)
@@ -158,23 +158,23 @@ func (i *interpreter) VisitVar(stmt ast.VarStmt) any {
 
 type Break struct{}
 
-func (i *interpreter) VisitBreak(stmt ast.BreakStmt) any {
+func (i *Interpreter) VisitBreak(stmt ast.BreakStmt) any {
 	panic(Break{})
 }
 
 type Continue struct{}
 
-func (i *interpreter) VisitContinue(stmt ast.ContinueStmt) any {
+func (i *Interpreter) VisitContinue(stmt ast.ContinueStmt) any {
 	panic(Continue{})
 }
 
-func (i *interpreter) VisitAssignment(expr ast.Assignment) any {
+func (i *Interpreter) VisitAssignment(expr ast.Assignment) any {
 	value := i.evaluate(expr.Value)
 	i.env.Assign(expr.Name, value)
 	return value
 }
 
-func (i *interpreter) VisitBinary(expr ast.Binary) any {
+func (i *Interpreter) VisitBinary(expr ast.Binary) any {
 	left := i.evaluate(expr.Left)
 	right := i.evaluate(expr.Right)
 
@@ -234,15 +234,15 @@ func (i *interpreter) VisitBinary(expr ast.Binary) any {
 	return nil
 }
 
-func (i *interpreter) VisitGrouping(expr ast.Grouping) any {
+func (i *Interpreter) VisitGrouping(expr ast.Grouping) any {
 	return i.evaluate(expr.Expression)
 }
 
-func (i *interpreter) VisitLiteral(expr ast.Literal) any {
+func (i *Interpreter) VisitLiteral(expr ast.Literal) any {
 	return expr.Value
 }
 
-func (i *interpreter) VisitLogical(expr ast.Logical) any {
+func (i *Interpreter) VisitLogical(expr ast.Logical) any {
 	left := i.evaluate(expr.Left)
 
 	if expr.Operator.TokenType == t.OR {
@@ -258,7 +258,7 @@ func (i *interpreter) VisitLogical(expr ast.Logical) any {
 	return i.evaluate(expr.Right)
 }
 
-func (i *interpreter) VisitUnary(expr ast.Unary) any {
+func (i *Interpreter) VisitUnary(expr ast.Unary) any {
 	right := i.evaluate(expr.Right)
 
 	switch expr.Operator.TokenType {
@@ -272,7 +272,7 @@ func (i *interpreter) VisitUnary(expr ast.Unary) any {
 	return nil
 }
 
-func (i *interpreter) VisitCall(expr ast.Call) any {
+func (i *Interpreter) VisitCall(expr ast.Call) any {
 	callee := i.evaluate(expr.Callee)
 	var arguments []any
 	for _, expr := range expr.Arguments {
@@ -293,11 +293,11 @@ func (i *interpreter) VisitCall(expr ast.Call) any {
 	return function.call(i, arguments)
 }
 
-func (i *interpreter) VisitVariable(expr ast.Variable) any {
+func (i *Interpreter) VisitVariable(expr ast.Variable) any {
 	return i.env.Get(expr.Name)
 }
 
-func (i *interpreter) VisitTernary(expr ast.Ternary) any {
+func (i *Interpreter) VisitTernary(expr ast.Ternary) any {
 	condition := i.evaluate(expr.Condition)
 	if i.isTruthy(condition) {
 		return i.evaluate(expr.Then)
@@ -305,11 +305,11 @@ func (i *interpreter) VisitTernary(expr ast.Ternary) any {
 	return i.evaluate(expr.Else)
 }
 
-func (i *interpreter) VisitFuncExpr(expr ast.FuncExpr) any {
+func (i *Interpreter) VisitFuncExpr(expr ast.FuncExpr) any {
 	return NewFunction(ast.FuncStmt{Function: expr}, i.env)
 }
 
-func (i *interpreter) isTruthy(value any) bool {
+func (i *Interpreter) isTruthy(value any) bool {
 	if value == nil {
 		return false
 	}
@@ -321,7 +321,7 @@ func (i *interpreter) isTruthy(value any) bool {
 	return true
 }
 
-func (i *interpreter) checkNumberOperand(operator t.Token, operand any) {
+func (i *Interpreter) checkNumberOperand(operator t.Token, operand any) {
 	if _, isFloat := operand.(float64); isFloat {
 		return
 	}
@@ -329,7 +329,7 @@ func (i *interpreter) checkNumberOperand(operator t.Token, operand any) {
 	panic(errMsg)
 }
 
-func (i *interpreter) checkNumberOperands(operator t.Token, right, left any) {
+func (i *Interpreter) checkNumberOperands(operator t.Token, right, left any) {
 	if _, isFloat := right.(float64); isFloat {
 		if _, isFloat := left.(float64); isFloat {
 			return

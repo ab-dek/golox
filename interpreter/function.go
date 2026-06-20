@@ -19,7 +19,7 @@ func NewFunction(declaration ast.FuncStmt, closure *e.Environment) *Function {
 	}
 }
 
-func (f Function) call(i *interpreter, arguments []any) (result any) {
+func (f Function) call(i *Interpreter, arguments []any) (result any) {
 	defer func() {
 		if err := recover(); err != nil {
 			if ReturnValue, ok := err.(Return); ok {

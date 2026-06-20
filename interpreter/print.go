@@ -5,7 +5,7 @@ import "fmt"
 // currently not used
 type print struct{}
 
-func (p print) call(i *interpreter, arguments []any) any {
+func (p print) call(i *Interpreter, arguments []any) any {
 	fmt.Printf("%v", arguments[0])
 	return nil
 }
