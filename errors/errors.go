@@ -28,6 +28,7 @@ func report(line int, where string, message string) {
 
 func ReportError(message string) {
 	fmt.Fprint(os.Stderr, message)
+	HadError = true
 }
 
 func RuntimeError(token t.Token, message string) string {

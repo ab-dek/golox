@@ -8,14 +8,23 @@ import (
 	t "github.com/ab-dek/golox/token"
 )
 
+type functionType int
+
+const (
+	NONE functionType = iota
+	FUNCTION
+)
+
 type Resolver struct {
-	interpreter *i.Interpreter
-	scopes      s.Stack[scope]
+	interpreter     *i.Interpreter
+	scopes          s.Stack[scope]
+	currentFunction functionType
 }
 
 func NewResolver(interpreter *i.Interpreter) *Resolver {
 	return &Resolver{
-		interpreter: interpreter,
+		interpreter:     interpreter,
+		currentFunction: NONE,
 	}
 }
 
@@ -62,7 +71,7 @@ func (r *Resolver) VisitFuncStmt(stmt ast.FuncStmt) any {
 	r.declare(stmt.Name)
 	r.define(stmt.Name)
 
-	r.resolveFunction(stmt.Function)
+	r.resolveFunction(stmt.Function, FUNCTION)
 
 	return nil
 }
@@ -87,6 +96,11 @@ func (r *Resolver) VisitPrint(stmt ast.PrintStmt) any {
 
 // VisitReturn implements [ast.StmtVisitor].
 func (r *Resolver) VisitReturn(stmt ast.ReturnStmt) any {
+	if r.currentFunction == NONE {
+		errMsg := errs.ParseError(stmt.Keyword, "Can't return from a top-level code.")
+		errs.ReportError(errMsg)
+	}
+
 	if stmt.Value != nil {
 		r.resolveExpr(stmt.Value)
 	}
@@ -141,7 +155,7 @@ func (r *Resolver) VisitCall(expr ast.Call) any {
 
 // VisitFuncExpr implements [ast.ExprVisitor].
 func (r *Resolver) VisitFuncExpr(expr ast.FuncExpr) any {
-	r.resolveFunction(expr)
+	r.resolveFunction(expr, FUNCTION)
 
 	return nil
 }
@@ -207,6 +221,10 @@ func (r *Resolver) declare(name t.Token) {
 	}
 
 	scope, _ := r.scopes.Peek()
+	if _, ok := scope[name.Lexeme]; ok {
+		errMsg := errs.ParseError(name, "Already variable with this name in this scope.")
+		errs.ReportError(errMsg)
+	}
 	scope[name.Lexeme] = false
 }
 
@@ -229,7 +247,10 @@ func (r *Resolver) resolveLocal(expr ast.Expr, name t.Token) {
 	}
 }
 
-func (r *Resolver) resolveFunction(function ast.FuncExpr) {
+func (r *Resolver) resolveFunction(function ast.FuncExpr, funcType functionType) {
+	enclosingFunc := r.currentFunction
+	r.currentFunction = funcType
+
 	r.beginScope()
 
 	for _, param := range function.Params {
@@ -239,4 +260,6 @@ func (r *Resolver) resolveFunction(function ast.FuncExpr) {
 
 	r.ResolveStmts(function.Body)
 	r.endScope()
+
+	r.currentFunction = enclosingFunc
 }
