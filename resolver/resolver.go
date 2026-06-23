@@ -197,9 +197,11 @@ func (r *Resolver) VisitUnary(expr ast.Unary) any {
 // VisitVarExpr implements [ast.ExprVisitor].
 func (r *Resolver) VisitVarExpr(expr ast.VarExpr) any {
 	scope, err := r.scopes.Peek()
-	if err == nil && scope[expr.Name.Lexeme] == false {
-		errMsg := errs.ParseError(expr.Name, "Can't read local variable in its own initializer.")
-		errs.ReportError(errMsg)
+	if err == nil { // check if scope stack is not empty
+		if v, ok := scope[expr.Name.Lexeme]; ok && !v.resolved {
+			errMsg := errs.ParseError(expr.Name, "Can't read local variable in its own initializer.")
+			errs.ReportError(errMsg)
+		}
 	}
 
 	r.resolveLocal(expr, expr.Name)
@@ -212,6 +214,12 @@ func (r *Resolver) beginScope() {
 }
 
 func (r *Resolver) endScope() {
+	scope, _ := r.scopes.Peek()
+	for _, value := range scope {
+		if !value.used {
+			errs.ReportWarning(value.token, "Variable declared but never used.")
+		}
+	}
 	r.scopes.Pop()
 }
 
@@ -225,7 +233,10 @@ func (r *Resolver) declare(name t.Token) {
 		errMsg := errs.ParseError(name, "Already variable with this name in this scope.")
 		errs.ReportError(errMsg)
 	}
-	scope[name.Lexeme] = false
+	scope[name.Lexeme] = &varInfo{
+		token:    name,
+		resolved: false,
+	}
 }
 
 func (r *Resolver) define(name t.Token) {
@@ -234,15 +245,17 @@ func (r *Resolver) define(name t.Token) {
 	}
 
 	scope, _ := r.scopes.Peek()
-	scope[name.Lexeme] = true
+	scope[name.Lexeme].resolved = true
 }
 
 func (r *Resolver) resolveLocal(expr ast.Expr, name t.Token) {
 	lenStack := r.scopes.Size()
 	for i := lenStack - 1; i >= 0; i-- {
 		scope, _ := r.scopes.Get(i)
-		if _, ok := scope[name.Lexeme]; ok {
+		if v, ok := scope[name.Lexeme]; ok {
 			r.interpreter.Resolve(expr, lenStack-1-i)
+			v.used = true
+			return
 		}
 	}
 }

@@ -100,5 +100,9 @@ func run(source string) {
 	resolver := r.NewResolver(interpreter)
 	resolver.ResolveStmts(stmts)
 
+	if errs.HadError {
+		return
+	}
+
 	interpreter.Interpret(stmts)
 }

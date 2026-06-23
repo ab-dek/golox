@@ -119,4 +119,6 @@ print a;
 showA();
 var a = "block";
 showA();
+print a;
+var b; // un-used variable
 }
