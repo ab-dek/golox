@@ -115,6 +115,8 @@ var a = "global";
 {
 fun showA() {
 print a;
+return;
+print "there should be a warning for un-reachable code";
 }
 showA();
 var a = "block";

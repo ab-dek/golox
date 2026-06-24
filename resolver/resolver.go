@@ -1,6 +1,8 @@
 package resolver
 
 import (
+	"fmt"
+
 	"github.com/ab-dek/golox/ast"
 	errs "github.com/ab-dek/golox/errors"
 	i "github.com/ab-dek/golox/interpreter"
@@ -45,6 +47,7 @@ func (r *Resolver) resolveExpr(expr ast.Expr) {
 func (r *Resolver) VisitBlock(stmt ast.Block) any {
 	r.beginScope()
 	r.ResolveStmts(stmt.Statements)
+	r.checkUnusedVariable("variable")
 	r.endScope()
 
 	return nil
@@ -214,12 +217,6 @@ func (r *Resolver) beginScope() {
 }
 
 func (r *Resolver) endScope() {
-	scope, _ := r.scopes.Peek()
-	for _, value := range scope {
-		if !value.used {
-			errs.ReportWarning(value.token, "Variable declared but never used.")
-		}
-	}
 	r.scopes.Pop()
 }
 
@@ -272,7 +269,17 @@ func (r *Resolver) resolveFunction(function ast.FuncExpr, funcType functionType)
 	}
 
 	r.ResolveStmts(function.Body)
+	r.checkUnusedVariable("parameter")
 	r.endScope()
 
 	r.currentFunction = enclosingFunc
+}
+
+func (r *Resolver) checkUnusedVariable(kind string) {
+	scope, _ := r.scopes.Peek()
+	for _, value := range scope {
+		if !value.used {
+			errs.ReportWarning(value.token, fmt.Sprintf("%s never used.", kind))
+		}
+	}
 }

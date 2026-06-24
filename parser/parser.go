@@ -61,6 +61,7 @@ type Parser struct {
 	tokens      []t.Token
 	current     int
 	loopNesting int
+	returned    bool // return called, break or continue
 }
 
 func NewParser(tokens []t.Token) *Parser {
@@ -68,6 +69,7 @@ func NewParser(tokens []t.Token) *Parser {
 		tokens:      tokens,
 		current:     0,
 		loopNesting: 0,
+		returned:    false,
 	}
 }
 
@@ -217,6 +219,11 @@ func (p *Parser) printStatement() ast.Stmt {
 func (p *Parser) block() []ast.Stmt {
 	var statements []ast.Stmt
 	for !p.check(t.RIGHT_BRACE) && !p.isAtEnd() {
+		if p.returned {
+			errs.ReportWarning(p.peek(), "Un-reachable code.")
+			p.returned = false
+		}
+
 		statements = append(statements, p.declaration())
 	}
 
@@ -255,6 +262,9 @@ func (p *Parser) breakStatement() ast.Stmt {
 	if p.loopNesting == 0 {
 		p.error(breakKeyword, "Cannot use 'break' statement outside of a loop.")
 	}
+
+	p.returned = true
+
 	return ast.NewBreakStmt()
 }
 
@@ -264,6 +274,9 @@ func (p *Parser) continueStatement() ast.Stmt {
 	if p.loopNesting == 0 {
 		p.error(continueKeyword, "Cannot use 'continue' statement outside of a loop.")
 	}
+
+	p.returned = true
+
 	return ast.NewContinueStmt()
 }
 
@@ -275,6 +288,8 @@ func (p *Parser) returnStatement() ast.Stmt {
 	}
 
 	p.consume(t.SEMICOLON, "Expect ';' after statement.")
+
+	p.returned = true
 
 	return ast.NewReturn(returnKeyword, value)
 }
