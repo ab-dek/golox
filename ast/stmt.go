@@ -9,6 +9,7 @@ type Stmt interface {
 }
 
 type StmtVisitor interface {
+	VisitClassStmt(stmt ClassStmt) any
 	VisitBlock(stmt Block) any
 	VisitExpr(stmt ExprStmt) any
 	VisitPrint(stmt PrintStmt) any
@@ -33,6 +34,22 @@ func NewBlock(statements []Stmt) *Block {
 
 func (b Block) Accept(visitor StmtVisitor) any {
 	return visitor.VisitBlock(b)
+}
+
+type ClassStmt struct {
+	Name    t.Token
+	Methods []FuncStmt
+}
+
+func NewClassStmt(name t.Token, methods []FuncStmt) *ClassStmt {
+	return &ClassStmt{
+		Name:    name,
+		Methods: methods,
+	}
+}
+
+func (c ClassStmt) Accept(visitor StmtVisitor) any {
+	return visitor.VisitClassStmt(c)
 }
 
 type ExprStmt struct {

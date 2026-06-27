@@ -90,6 +90,13 @@ func (i *Interpreter) VisitBlock(stmt ast.Block) any {
 	return nil
 }
 
+func (i *Interpreter) VisitClassStmt(stmt ast.ClassStmt) any {
+	i.env.Define(stmt.Name.Lexeme, nil)
+	class := newClass(stmt.Name.Lexeme)
+	i.env.Assign(stmt.Name, class)
+	return nil
+}
+
 func (i *Interpreter) VisitExpr(stmt ast.ExprStmt) any {
 	i.evaluate(stmt.Expr)
 	return nil

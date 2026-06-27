@@ -12,22 +12,17 @@ import (
 grammmer:
 
 program→ declaration* EOF ;
-declaration→ varDecl
-			 | funcDecl
-			 | statement ;
+declaration→ varDecl | funcDecl | classDecl | statement ;
+
+classDecl→ "class" IDENTIFIER "{" function* "}" ;
 varDecl→ "var" IDENTIFIER ( "=" expression )? ";" ;
-funDecl→ "fun" IDENTIFIER funExpr ;
+
+funDecl→ "fun" function;
+function→ IDENTIFIER funExpr ;
 funcExpr→ "(" parameters? ")" block ;
 parameters→ IDENTIFIER ( "," IDENTIFIER )* ;
-statement→ exprStmt
-		   | printStmt
-		   | ifStmt
-		   | whileStmt
-		   | forStmt
-		   | breakStmt
-		   | returnStmt
-		   | continueStmt
-		   | block ;
+
+statement→ exprStmt | printStmt | ifStmt | whileStmt | forStmt | breakStmt | returnStmt | continueStmt | block ;
 forStmt→ "for" "(" ( varDecl | exprStmt | ";" )
 		  expression? ";"
 		  expression? ")" statement ;
@@ -37,9 +32,9 @@ block→ "{" declaration* "}" ;
 exprStmt→ expression ";" ;
 printStmt→ "print" expression ";" ;
 returnStmt→ "return" expression? ";" ;
+
 expression→ assignment ;
-assignment→ IDENTIFIER "=" assignment
-			| logic_or ;
+assignment→ IDENTIFIER "=" assignment | logic_or ;
 logic_or→ logic_and ( "or" logic_and )* ;
 logic_and→ ternary ( "and" ternary )* ;
 ternary→ equality ( "?" expression ":" conditional )? ;
@@ -47,14 +42,10 @@ equality→ comparison ( ( "!=" | "==" ) comparison )* ;
 comparison→ term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 term→ factor ( ( "-" | "+" ) factor )* ;
 factor→ unary ( ( "/" | "*" ) unary )* ;
-unary→ ( "!" | "-" ) unary
-	   | call ;
+unary→ ( "!" | "-" ) unary | call ;
 call→ primary ( "(" arguments? ")" )* ;
 argument→ expression ( "," expression )* ;
-primary→ NUMBER | STRING | "true" | "false" | "nil"
-		 | "(" expression ")"
-| IDENTIFIER
-| "fun" funExpr ;
+primary→ NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" | IDENTIFIER | "fun" funExpr ;
 */
 
 type Parser struct {
@@ -104,6 +95,9 @@ func (p *Parser) declaration() ast.Stmt {
 	if p.check(t.FUN) && p.checkNext(t.IDENTIFIER) {
 		p.consume(t.FUN, "")
 		return p.funDeclaration("function")
+	}
+	if p.match(t.CLASS) {
+		return p.class()
 	}
 	return p.statement()
 }
@@ -229,6 +223,21 @@ func (p *Parser) block() []ast.Stmt {
 
 	p.consume(t.RIGHT_BRACE, "Expect '}' after block.")
 	return statements
+}
+
+func (p *Parser) class() ast.Stmt {
+	name := p.consume(t.IDENTIFIER, "Expect a class name.")
+	p.consume(t.LEFT_BRACE, "Expect '{' before class body.")
+
+	var methods []ast.FuncStmt
+	for !p.check(t.RIGHT_BRACE) && !p.isAtEnd() {
+		method := p.funDeclaration("method").(ast.FuncStmt)
+		methods = append(methods, method)
+	}
+
+	p.consume(t.RIGHT_BRACE, "Expect '}' after class body.")
+
+	return ast.NewClassStmt(name, methods)
 }
 
 func (p *Parser) expressionStatement() ast.Stmt {

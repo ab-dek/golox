@@ -53,6 +53,12 @@ func (r *Resolver) VisitBlock(stmt ast.Block) any {
 	return nil
 }
 
+func (r *Resolver) VisitClassStmt(stmt ast.ClassStmt) any {
+	r.declare(stmt.Name)
+	r.define(stmt.Name)
+	return nil
+}
+
 // VisitBreak implements [ast.StmtVisitor].
 func (r *Resolver) VisitBreak(stmt ast.BreakStmt) any {
 	return nil
