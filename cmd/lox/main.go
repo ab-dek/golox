@@ -85,6 +85,7 @@ func run(source string) {
 	// 	fmt.Println(token.ToString())
 	// }
 
+	fmt.Println("Parsing and Resolving...")
 	parser := p.NewParser(tokens)
 	stmts := parser.Parse()
 
@@ -104,5 +105,6 @@ func run(source string) {
 		return
 	}
 
+	fmt.Println("Interpreting...")
 	interpreter.Interpret(stmts)
 }

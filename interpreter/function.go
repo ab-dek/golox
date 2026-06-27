@@ -44,6 +44,6 @@ func (f Function) arity() int {
 	return len(f.Function.Params)
 }
 
-func (f Function) ToString() string {
+func (f Function) String() string {
 	return fmt.Sprintf("<fn %v>", f.Name.Lexeme)
 }

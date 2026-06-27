@@ -231,8 +231,8 @@ func (p *Parser) class() ast.Stmt {
 
 	var methods []ast.FuncStmt
 	for !p.check(t.RIGHT_BRACE) && !p.isAtEnd() {
-		method := p.funDeclaration("method").(ast.FuncStmt)
-		methods = append(methods, method)
+		method := p.funDeclaration("method").(*ast.FuncStmt)
+		methods = append(methods, *method)
 	}
 
 	p.consume(t.RIGHT_BRACE, "Expect '}' after class body.")

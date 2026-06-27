@@ -124,3 +124,14 @@ showA();
 print a;
 var b; // un-used variable
 }
+
+class DevonshireCream {
+    serveOn() {
+        return "Scones";
+    }
+}
+
+var dc = DevonshireCream();
+
+print DevonshireCream;
+print dc;
