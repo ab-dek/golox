@@ -162,6 +162,12 @@ func (r *Resolver) VisitCall(expr ast.Call) any {
 	return nil
 }
 
+// VisitGet implements [ast.ExprVisitor].
+func (r *Resolver) VisitGet(expr ast.Get) any {
+	r.resolveExpr(expr.Object)
+	return nil
+}
+
 // VisitFuncExpr implements [ast.ExprVisitor].
 func (r *Resolver) VisitFuncExpr(expr ast.FuncExpr) any {
 	r.resolveFunction(expr, FUNCTION)
@@ -193,6 +199,14 @@ func (r *Resolver) VisitTernary(expr ast.Ternary) any {
 	r.resolveExpr(expr.Condition)
 	r.resolveExpr(expr.Else)
 	r.resolveExpr(expr.Then)
+
+	return nil
+}
+
+// VisitSet implements [ast.ExprVisitor].
+func (r *Resolver) VisitSet(expr ast.Set) any {
+	r.resolveExpr(expr.Value)
+	r.resolveExpr(expr.Object)
 
 	return nil
 }

@@ -44,6 +44,10 @@ func (r *RPN) VisitLogical(expr Logical) any {
 	return fmt.Sprintf("%s %s %s", left, right, operator)
 }
 
+func (r *RPN) VisitSet(expr Set) any {
+	panic("unimplemented")
+}
+
 func (r *RPN) VisitUnary(expr Unary) any {
 	right := expr.Right.Accept(r).(string)
 	operator := expr.Operator.Lexeme
@@ -52,6 +56,10 @@ func (r *RPN) VisitUnary(expr Unary) any {
 }
 
 func (r *RPN) VisitCall(expr Call) any {
+	panic("unimplemented")
+}
+
+func (r *RPN) VisitGet(expr Get) any {
 	panic("unimplemented")
 }
 

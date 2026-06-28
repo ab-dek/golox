@@ -34,7 +34,7 @@ printStmt→ "print" expression ";" ;
 returnStmt→ "return" expression? ";" ;
 
 expression→ assignment ;
-assignment→ IDENTIFIER "=" assignment | logic_or ;
+assignment→ ( call "." )? IDENTIFIER "=" assignment | logic_or ;
 logic_or→ logic_and ( "or" logic_and )* ;
 logic_and→ ternary ( "and" ternary )* ;
 ternary→ equality ( "?" expression ":" conditional )? ;
@@ -43,7 +43,7 @@ comparison→ term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 term→ factor ( ( "-" | "+" ) factor )* ;
 factor→ unary ( ( "/" | "*" ) unary )* ;
 unary→ ( "!" | "-" ) unary | call ;
-call→ primary ( "(" arguments? ")" )* ;
+call→ primary ( "(" arguments? ")" | "." IDENTIFIER )* ;
 argument→ expression ( "," expression )* ;
 primary→ NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" | IDENTIFIER | "fun" funExpr ;
 */
@@ -311,42 +311,56 @@ func (p *Parser) assignment() ast.Expr {
 		value := p.assignment()
 		if variable, ok := expr.(*ast.VarExpr); ok {
 			return ast.NewAssignment(variable.Name, value)
+		} else if get, ok := expr.(*ast.Get); ok {
+			return ast.NewSet(get.Object, value, get.Name)
 		}
 
 		p.error(equals, "Invalid assignment target.")
 	case p.match(t.PLUS_EQUAL):
 		equals := p.previous()
 		value := p.assignment()
+		var addition *ast.Binary
 		if variable, ok := expr.(*ast.VarExpr); ok {
-			addition := ast.NewBinary(variable, value, *t.NewToken(t.PLUS, "+", "", equals.Line))
+			addition = ast.NewBinary(variable, value, *t.NewToken(t.PLUS, "+", "", equals.Line))
 			return ast.NewAssignment(variable.Name, addition)
+		} else if get, ok := expr.(*ast.Get); ok {
+			return ast.NewSet(get.Object, addition, get.Name)
 		}
 
 		p.error(equals, "Invalid assignment target.")
 	case p.match(t.MINUS_EQUAL):
 		equals := p.previous()
 		value := p.assignment()
+		var subtraction *ast.Binary
 		if variable, ok := expr.(*ast.VarExpr); ok {
-			subtraction := ast.NewBinary(variable, value, *t.NewToken(t.MINUS, "-", "", equals.Line))
+			subtraction = ast.NewBinary(variable, value, *t.NewToken(t.MINUS, "-", "", equals.Line))
 			return ast.NewAssignment(variable.Name, subtraction)
+		} else if get, ok := expr.(*ast.Get); ok {
+			return ast.NewSet(get.Object, subtraction, get.Name)
 		}
 
 		p.error(equals, "Invalid assignment target.")
 	case p.match(t.STAR_EQUAL):
 		equals := p.previous()
 		value := p.assignment()
+		var multiplication *ast.Binary
 		if variable, ok := expr.(*ast.VarExpr); ok {
-			multiplication := ast.NewBinary(variable, value, *t.NewToken(t.STAR, "*", "", equals.Line))
+			multiplication = ast.NewBinary(variable, value, *t.NewToken(t.STAR, "*", "", equals.Line))
 			return ast.NewAssignment(variable.Name, multiplication)
+		} else if get, ok := expr.(*ast.Get); ok {
+			return ast.NewSet(get.Object, multiplication, get.Name)
 		}
 
 		p.error(equals, "Invalid assignment target.")
 	case p.match(t.SLASH_EQUAL):
 		equals := p.previous()
 		value := p.assignment()
+		var division *ast.Binary
 		if variable, ok := expr.(*ast.VarExpr); ok {
-			addition := ast.NewBinary(variable, value, *t.NewToken(t.SLASH, "/", "", equals.Line))
-			return ast.NewAssignment(variable.Name, addition)
+			division = ast.NewBinary(variable, value, *t.NewToken(t.SLASH, "/", "", equals.Line))
+			return ast.NewAssignment(variable.Name, division)
+		} else if get, ok := expr.(*ast.Get); ok {
+			return ast.NewSet(get.Object, division, get.Name)
 		}
 
 		p.error(equals, "Invalid assignment target.")
@@ -452,6 +466,9 @@ func (p *Parser) call() ast.Expr {
 	for {
 		if p.match(t.LEFT_PAREN) {
 			expr = p.finishCall(expr)
+		} else if p.match(t.DOT) {
+			name := p.consume(t.IDENTIFIER, "Expect property name after '.'.")
+			expr = ast.NewGet(expr, name)
 		} else {
 			break
 		}

@@ -276,6 +276,18 @@ func (i *Interpreter) VisitLogical(expr ast.Logical) any {
 	return i.evaluate(expr.Right)
 }
 
+func (i *Interpreter) VisitSet(expr ast.Set) any {
+	object := i.evaluate(expr.Object)
+	if instance, ok := object.(*instance); ok {
+		value := i.evaluate(expr.Value)
+		instance.fields[expr.Name.Lexeme] = &value
+		return value
+	}
+
+	errMsg := errs.RuntimeError(expr.Name, "Only instances have fields.")
+	panic(errMsg)
+}
+
 func (i *Interpreter) VisitUnary(expr ast.Unary) any {
 	right := i.evaluate(expr.Right)
 
@@ -309,6 +321,21 @@ func (i *Interpreter) VisitCall(expr ast.Call) any {
 	}
 
 	return function.call(i, arguments)
+}
+
+func (i *Interpreter) VisitGet(expr ast.Get) any {
+	object := i.evaluate(expr.Object)
+	if instance, ok := object.(*instance); ok {
+		if value, exists := instance.fields[expr.Name.Lexeme]; exists {
+			return *value
+		}
+
+		errMsg := errs.RuntimeError(expr.Name, fmt.Sprintf("Undefined property %s.", expr.Name.Lexeme))
+		panic(errMsg)
+	}
+
+	errMsg := errs.RuntimeError(expr.Name, "Only instances have properties.")
+	panic(errMsg)
 }
 
 func (i *Interpreter) VisitVarExpr(expr ast.VarExpr) any {

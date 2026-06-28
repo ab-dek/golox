@@ -1,14 +1,18 @@
 package interpreter
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type instance struct {
-	class class
+	class  class
+	fields map[string]*any
 }
 
 func newInstance(class class) *instance {
 	return &instance{
-		class: class,
+		class:  class,
+		fields: make(map[string]*any),
 	}
 }
 

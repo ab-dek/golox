@@ -135,3 +135,6 @@ var dc = DevonshireCream();
 
 print DevonshireCream;
 print dc;
+
+dc.field = "testing fields";
+print dc.field;

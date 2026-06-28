@@ -39,11 +39,19 @@ func (p *printer) VisitLogical(expr Logical) any {
 	return p.parenthesize(expr.Operator.Lexeme, expr.Left, expr.Right)
 }
 
+func (p *printer) VisitSet(expr Set) any {
+	panic("unimplemented")
+}
+
 func (p *printer) VisitUnary(expr Unary) any {
 	return p.parenthesize(expr.Operator.Lexeme, expr.Right)
 }
 
 func (p *printer) VisitCall(expr Call) any {
+	panic("unimplemented")
+}
+
+func (p *printer) VisitGet(expr Get) any {
 	panic("unimplemented")
 }
 

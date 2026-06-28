@@ -14,8 +14,10 @@ type ExprVisitor interface {
 	VisitGrouping(expr Grouping) any
 	VisitLiteral(expr Literal) any
 	VisitLogical(expr Logical) any
+	VisitSet(expr Set) any
 	VisitUnary(expr Unary) any
 	VisitCall(expr Call) any
+	VisitGet(expr Get) any
 	VisitVarExpr(expr VarExpr) any
 	VisitTernary(expr Ternary) any
 	VisitFuncExpr(expr FuncExpr) any
@@ -73,6 +75,22 @@ func (c Call) Accept(visitor ExprVisitor) any {
 	return visitor.VisitCall(c)
 }
 
+type Get struct {
+	Object Expr
+	Name   t.Token
+}
+
+func NewGet(object Expr, name t.Token) *Get {
+	return &Get{
+		Object: object,
+		Name:   name,
+	}
+}
+
+func (g Get) Accept(visitor ExprVisitor) any {
+	return visitor.VisitGet(g)
+}
+
 type Grouping struct {
 	Expression Expr
 }
@@ -117,6 +135,24 @@ func NewLogical(left, right Expr, operator t.Token) *Logical {
 
 func (l Logical) Accept(visitor ExprVisitor) any {
 	return visitor.VisitLogical(l)
+}
+
+type Set struct {
+	Object Expr
+	Name   t.Token
+	Value  Expr
+}
+
+func NewSet(object, value Expr, name t.Token) *Set {
+	return &Set{
+		Object: object,
+		Name:   name,
+		Value:  value,
+	}
+}
+
+func (s Set) Accept(visitor ExprVisitor) any {
+	return visitor.VisitSet(s)
 }
 
 type Unary struct {
