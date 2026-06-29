@@ -92,7 +92,14 @@ func (i *Interpreter) VisitBlock(stmt ast.Block) any {
 
 func (i *Interpreter) VisitClassStmt(stmt ast.ClassStmt) any {
 	i.env.Define(stmt.Name.Lexeme, nil)
-	class := newClass(stmt.Name.Lexeme)
+
+	methods := make(map[string]*Function)
+	for _, method := range stmt.Methods {
+		function := NewFunction(method, i.env)
+		methods[method.Name.Lexeme] = function
+	}
+	class := newClass(stmt.Name.Lexeme, methods)
+
 	i.env.Assign(stmt.Name, class)
 	return nil
 }
@@ -328,6 +335,11 @@ func (i *Interpreter) VisitGet(expr ast.Get) any {
 	if instance, ok := object.(*instance); ok {
 		if value, exists := instance.fields[expr.Name.Lexeme]; exists {
 			return *value
+		}
+
+		method := instance.class.FindMethod(expr.Name.Lexeme)
+		if method != nil {
+			return method
 		}
 
 		errMsg := errs.RuntimeError(expr.Name, fmt.Sprintf("Undefined property %s.", expr.Name.Lexeme))
