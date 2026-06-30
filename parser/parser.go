@@ -523,6 +523,8 @@ func (p *Parser) primary() ast.Expr {
 		return ast.NewLiteral(nil)
 	case p.match(t.NUMBER, t.STRING):
 		return ast.NewLiteral(p.previous().Literal)
+	case p.match(t.THIS):
+		return ast.NewThis(p.previous())
 	case p.match(t.IDENTIFIER):
 		return ast.NewVariable(p.previous())
 	case p.match(t.LEFT_PAREN):

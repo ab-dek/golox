@@ -58,9 +58,17 @@ func (r *Resolver) VisitClassStmt(stmt ast.ClassStmt) any {
 	r.declare(stmt.Name)
 	r.define(stmt.Name)
 
+	r.beginScope()
+	scope, _ := r.scopes.Peek()
+	scope["this"] = &varInfo{
+		token:    *t.NewToken(t.IDENTIFIER, "this", nil, 0),
+		resolved: true,
+	}
+
 	for _, method := range stmt.Methods {
 		r.resolveFunction(method.Function, METHOD)
 	}
+	r.endScope()
 
 	return nil
 }
@@ -214,6 +222,12 @@ func (r *Resolver) VisitSet(expr ast.Set) any {
 	r.resolveExpr(expr.Value)
 	r.resolveExpr(expr.Object)
 
+	return nil
+}
+
+// VisitThis implements [ast.ExprVisitor].
+func (r *Resolver) VisitThis(expr ast.This) any {
+	r.resolveLocal(expr, expr.Keyword)
 	return nil
 }
 

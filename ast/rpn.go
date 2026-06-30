@@ -48,6 +48,10 @@ func (r *RPN) VisitSet(expr Set) any {
 	panic("unimplemented")
 }
 
+func (r *RPN) VisitThis(expr This) any {
+	panic("unimplemented")
+}
+
 func (r *RPN) VisitUnary(expr Unary) any {
 	right := expr.Right.Accept(r).(string)
 	operator := expr.Operator.Lexeme

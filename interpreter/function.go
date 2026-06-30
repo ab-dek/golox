@@ -47,3 +47,9 @@ func (f Function) arity() int {
 func (f Function) String() string {
 	return fmt.Sprintf("<fn %v>", f.Name.Lexeme)
 }
+
+func (f *Function) bind(instance *instance) *Function {
+	env := e.NewEnv(f.Closure)
+	env.Define("this", instance)
+	return NewFunction(f.FuncStmt, env)
+}

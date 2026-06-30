@@ -295,6 +295,10 @@ func (i *Interpreter) VisitSet(expr ast.Set) any {
 	panic(errMsg)
 }
 
+func (i *Interpreter) VisitThis(expr ast.This) any {
+	return i.lookUpVariable(expr.Keyword, expr)
+}
+
 func (i *Interpreter) VisitUnary(expr ast.Unary) any {
 	right := i.evaluate(expr.Right)
 
@@ -339,7 +343,7 @@ func (i *Interpreter) VisitGet(expr ast.Get) any {
 
 		method := instance.class.FindMethod(expr.Name.Lexeme)
 		if method != nil {
-			return method
+			return method.bind(instance)
 		}
 
 		errMsg := errs.RuntimeError(expr.Name, fmt.Sprintf("Undefined property %s.", expr.Name.Lexeme))
@@ -396,7 +400,7 @@ func (i *Interpreter) checkNumberOperands(operator t.Token, right, left any) {
 	panic(errMsg)
 }
 
-func (i *Interpreter) lookUpVariable(name t.Token, expr ast.VarExpr) any {
+func (i *Interpreter) lookUpVariable(name t.Token, expr ast.Expr) any {
 	if distance, ok := i.locals[expr]; ok {
 		return i.env.GetAt(distance, name.Lexeme)
 	} else {

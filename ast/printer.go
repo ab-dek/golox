@@ -43,6 +43,10 @@ func (p *printer) VisitSet(expr Set) any {
 	panic("unimplemented")
 }
 
+func (p *printer) VisitThis(expr This) any {
+	panic("unimplemented")
+}
+
 func (p *printer) VisitUnary(expr Unary) any {
 	return p.parenthesize(expr.Operator.Lexeme, expr.Right)
 }

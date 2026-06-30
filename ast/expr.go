@@ -15,6 +15,7 @@ type ExprVisitor interface {
 	VisitLiteral(expr Literal) any
 	VisitLogical(expr Logical) any
 	VisitSet(expr Set) any
+	VisitThis(expr This) any
 	VisitUnary(expr Unary) any
 	VisitCall(expr Call) any
 	VisitGet(expr Get) any
@@ -153,6 +154,20 @@ func NewSet(object, value Expr, name t.Token) *Set {
 
 func (s Set) Accept(visitor ExprVisitor) any {
 	return visitor.VisitSet(s)
+}
+
+type This struct {
+	Keyword t.Token
+}
+
+func NewThis(keyword t.Token) *This {
+	return &This{
+		Keyword: keyword,
+	}
+}
+
+func (t This) Accept(visitor ExprVisitor) any {
+	return visitor.VisitThis(t)
 }
 
 type Unary struct {
