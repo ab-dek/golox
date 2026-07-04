@@ -105,12 +105,14 @@ func (i IfStmt) Accept(visitor StmtVisitor) any {
 type FuncStmt struct {
 	Name     t.Token
 	Function FuncExpr
+	IsStatic bool
 }
 
-func NewFunc(name t.Token, function FuncExpr) *FuncStmt {
+func NewFunc(name t.Token, function FuncExpr, isStatic bool) *FuncStmt {
 	return &FuncStmt{
 		Name:     name,
 		Function: function,
+		IsStatic: isStatic,
 	}
 }
 

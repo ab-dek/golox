@@ -48,6 +48,7 @@ const (
 	// Keywords.
 	AND
 	CLASS
+	STATIC
 	ELSE
 	FALSE
 	FUN
@@ -133,6 +134,8 @@ func (t TokenType) String() string {
 		return "AND"
 	case CLASS:
 		return "CLASS"
+	case STATIC:
+		return "STATIC"
 	case ELSE:
 		return "ELSE"
 	case FALSE:

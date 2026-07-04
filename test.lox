@@ -141,8 +141,15 @@ cake.taste();
 class Foo {
 init() {
 print this;
-return "something else";
+// return "something else";
 }
 }
 var foo = Foo();
 print foo.init();
+
+class Math {
+  static square(n) {
+    return n * n;
+  }
+}
+print Math.square(3);

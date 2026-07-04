@@ -74,7 +74,7 @@ func (r *Resolver) VisitClassStmt(stmt ast.ClassStmt) any {
 	r.beginScope()
 	scope, _ := r.scopes.Peek()
 	scope["this"] = &varInfo{
-		// token:    *t.NewToken(t.IDENTIFIER, "this", nil, 0),
+		token:    *t.NewToken(t.IDENTIFIER, "this", nil, 0),
 		resolved: true,
 	}
 
@@ -84,8 +84,17 @@ func (r *Resolver) VisitClassStmt(stmt ast.ClassStmt) any {
 		if method.Name.Lexeme == "init" {
 			declaration = INITIALIZER
 		}
+		if method.IsStatic {
+			// temporarily set currentClass to none to avoid 'this' being accessable in static methods
+			enclosingClass := r.currentClass
+			r.currentClass = CLASS_NONE
 
-		r.resolveFunction(method.Function, declaration)
+			r.resolveFunction(method.Function, declaration)
+
+			r.currentClass = enclosingClass
+		} else {
+			r.resolveFunction(method.Function, declaration)
+		}
 	}
 	r.endScope()
 

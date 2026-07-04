@@ -94,11 +94,17 @@ func (i *Interpreter) VisitClassStmt(stmt ast.ClassStmt) any {
 	i.env.Define(stmt.Name.Lexeme, nil)
 
 	methods := make(map[string]*Function)
+	staticMethods := make(map[string]*Function)
 	for _, method := range stmt.Methods {
-		function := NewFunction(method, i.env, method.Name.Lexeme == "init")
-		methods[method.Name.Lexeme] = function
+		if method.IsStatic {
+			function := NewFunction(method, i.env, false)
+			staticMethods[method.Name.Lexeme] = function
+		} else {
+			function := NewFunction(method, i.env, method.Name.Lexeme == "init")
+			methods[method.Name.Lexeme] = function
+		}
 	}
-	class := newClass(stmt.Name.Lexeme, methods)
+	class := newClass(stmt.Name.Lexeme, methods, staticMethods)
 
 	i.env.Assign(stmt.Name, class)
 	return nil
@@ -336,22 +342,29 @@ func (i *Interpreter) VisitCall(expr ast.Call) any {
 
 func (i *Interpreter) VisitGet(expr ast.Get) any {
 	object := i.evaluate(expr.Object)
-	if instance, ok := object.(*instance); ok {
-		if value, exists := instance.fields[expr.Name.Lexeme]; exists {
+	switch obj := object.(type) {
+	case *instance:
+		if value, exists := obj.fields[expr.Name.Lexeme]; exists {
 			return *value
 		}
 
-		method := instance.class.FindMethod(expr.Name.Lexeme)
+		method := obj.class.FindMethod(expr.Name.Lexeme)
 		if method != nil {
-			return method.bind(instance)
+			return method.bind(obj)
 		}
-
-		errMsg := errs.RuntimeError(expr.Name, fmt.Sprintf("Undefined property %s.", expr.Name.Lexeme))
+	case *class:
+		method := obj.FindStaticMethod(expr.Name.Lexeme)
+		if method != nil {
+			return method
+		}
+	default:
+		errMsg := errs.RuntimeError(expr.Name, "Only classes and instances have properties.")
 		panic(errMsg)
 	}
 
-	errMsg := errs.RuntimeError(expr.Name, "Only instances have properties.")
+	errMsg := errs.RuntimeError(expr.Name, fmt.Sprintf("Undefined property %s.", expr.Name.Lexeme))
 	panic(errMsg)
+
 }
 
 func (i *Interpreter) VisitVarExpr(expr ast.VarExpr) any {

@@ -14,7 +14,8 @@ grammmer:
 program→ declaration* EOF ;
 declaration→ varDecl | funcDecl | classDecl | statement ;
 
-classDecl→ "class" IDENTIFIER "{" function* "}" ;
+classDecl→ "class" IDENTIFIER "{" method* "}" ;
+method→ "static"? function ;
 varDecl→ "var" IDENTIFIER ( "=" expression )? ";" ;
 
 funDecl→ "fun" function;
@@ -94,7 +95,7 @@ func (p *Parser) declaration() ast.Stmt {
 	}
 	if p.check(t.FUN) && p.checkNext(t.IDENTIFIER) {
 		p.consume(t.FUN, "")
-		return p.funDeclaration("function")
+		return p.funDeclaration("function", false)
 	}
 	if p.match(t.CLASS) {
 		return p.class()
@@ -112,10 +113,10 @@ func (p *Parser) varDeclaration() ast.Stmt {
 	return ast.NewVarStmt(name, initializer)
 }
 
-func (p *Parser) funDeclaration(kind string) ast.Stmt {
+func (p *Parser) funDeclaration(kind string, isStatic bool) ast.Stmt {
 	name := p.consume(t.IDENTIFIER, fmt.Sprintf("Expect a %v name.", kind))
 
-	return ast.NewFunc(name, p.funExpr(kind))
+	return ast.NewFunc(name, p.funExpr(kind), isStatic)
 }
 
 func (p *Parser) statement() ast.Stmt {
@@ -230,8 +231,14 @@ func (p *Parser) class() ast.Stmt {
 	p.consume(t.LEFT_BRACE, "Expect '{' before class body.")
 
 	var methods []ast.FuncStmt
+	var method *ast.FuncStmt
 	for !p.check(t.RIGHT_BRACE) && !p.isAtEnd() {
-		method := p.funDeclaration("method").(*ast.FuncStmt)
+		if p.match(t.STATIC) {
+			method = p.funDeclaration("method", true).(*ast.FuncStmt)
+		} else {
+			method = p.funDeclaration("method", false).(*ast.FuncStmt)
+		}
+
 		methods = append(methods, *method)
 	}
 

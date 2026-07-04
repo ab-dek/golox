@@ -5,14 +5,16 @@ import (
 )
 
 type class struct {
-	name    string
-	methods map[string]*Function
+	name          string
+	methods       map[string]*Function
+	staticMethods map[string]*Function
 }
 
-func newClass(name string, methods map[string]*Function) *class {
+func newClass(name string, methods map[string]*Function, staticMethods map[string]*Function) *class {
 	return &class{
-		name:    name,
-		methods: methods,
+		name:          name,
+		methods:       methods,
+		staticMethods: staticMethods,
 	}
 }
 
@@ -39,6 +41,14 @@ func (c class) arity() int {
 
 func (c class) FindMethod(name string) *Function {
 	if method, ok := c.methods[name]; ok {
+		return method
+	}
+
+	return nil
+}
+
+func (c class) FindStaticMethod(name string) *Function {
+	if method, ok := c.staticMethods[name]; ok {
 		return method
 	}
 
