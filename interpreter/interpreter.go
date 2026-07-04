@@ -91,6 +91,17 @@ func (i *Interpreter) VisitBlock(stmt ast.Block) any {
 }
 
 func (i *Interpreter) VisitClassStmt(stmt ast.ClassStmt) any {
+	var superclass *class
+	if stmt.Superclass != nil {
+		value := i.evaluate(stmt.Superclass)
+		superclassValue, ok := value.(class)
+		if !ok {
+			errMsg := errs.RuntimeError(stmt.Superclass.Name, "Superclass must be a class.")
+			panic(errMsg)
+		}
+		superclass = &superclassValue
+	}
+
 	i.env.Define(stmt.Name.Lexeme, nil)
 
 	methods := make(map[string]*Function)
@@ -104,7 +115,7 @@ func (i *Interpreter) VisitClassStmt(stmt ast.ClassStmt) any {
 			methods[method.Name.Lexeme] = function
 		}
 	}
-	class := newClass(stmt.Name.Lexeme, methods, staticMethods)
+	class := newClass(stmt.Name.Lexeme, methods, staticMethods, superclass)
 
 	i.env.Assign(stmt.Name, class)
 	return nil

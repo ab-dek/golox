@@ -8,13 +8,15 @@ type class struct {
 	name          string
 	methods       map[string]*Function
 	staticMethods map[string]*Function
+	superclass    *class
 }
 
-func newClass(name string, methods map[string]*Function, staticMethods map[string]*Function) *class {
+func newClass(name string, methods map[string]*Function, staticMethods map[string]*Function, superclass *class) *class {
 	return &class{
 		name:          name,
 		methods:       methods,
 		staticMethods: staticMethods,
+		superclass:    superclass,
 	}
 }
 

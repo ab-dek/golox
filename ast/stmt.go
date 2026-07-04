@@ -37,14 +37,16 @@ func (b Block) Accept(visitor StmtVisitor) any {
 }
 
 type ClassStmt struct {
-	Name    t.Token
-	Methods []FuncStmt
+	Name       t.Token
+	Superclass *VarExpr
+	Methods    []FuncStmt
 }
 
-func NewClassStmt(name t.Token, methods []FuncStmt) *ClassStmt {
+func NewClassStmt(name t.Token, superclass *VarExpr, methods []FuncStmt) *ClassStmt {
 	return &ClassStmt{
-		Name:    name,
-		Methods: methods,
+		Name:       name,
+		Superclass: superclass,
+		Methods:    methods,
 	}
 }
 

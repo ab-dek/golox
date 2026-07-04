@@ -14,8 +14,8 @@ grammmer:
 program→ declaration* EOF ;
 declaration→ varDecl | funcDecl | classDecl | statement ;
 
-classDecl→ "class" IDENTIFIER "{" method* "}" ;
-method→ "static"? function ;
+classDecl→ "class" IDENTIFIER ( "<" IDENTIFIER )? "{" method* "}" ;
+method→ ( "static" )? function ;
 varDecl→ "var" IDENTIFIER ( "=" expression )? ";" ;
 
 funDecl→ "fun" function;
@@ -228,6 +228,13 @@ func (p *Parser) block() []ast.Stmt {
 
 func (p *Parser) class() ast.Stmt {
 	name := p.consume(t.IDENTIFIER, "Expect a class name.")
+
+	var superclass ast.VarExpr
+	if p.match(t.LESS) {
+		p.consume(t.IDENTIFIER, "Expect superclass name.")
+		superclass = *ast.NewVarExpr(p.previous())
+	}
+
 	p.consume(t.LEFT_BRACE, "Expect '{' before class body.")
 
 	var methods []ast.FuncStmt
@@ -244,7 +251,7 @@ func (p *Parser) class() ast.Stmt {
 
 	p.consume(t.RIGHT_BRACE, "Expect '}' after class body.")
 
-	return ast.NewClassStmt(name, methods)
+	return ast.NewClassStmt(name, &superclass, methods)
 }
 
 func (p *Parser) expressionStatement() ast.Stmt {
@@ -533,7 +540,7 @@ func (p *Parser) primary() ast.Expr {
 	case p.match(t.THIS):
 		return ast.NewThis(p.previous())
 	case p.match(t.IDENTIFIER):
-		return ast.NewVariable(p.previous())
+		return ast.NewVarExpr(p.previous())
 	case p.match(t.LEFT_PAREN):
 		expr := p.expression()
 		p.consume(t.RIGHT_PAREN, "Expect ')' after expression.")

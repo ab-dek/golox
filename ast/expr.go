@@ -190,7 +190,7 @@ type VarExpr struct {
 	Name t.Token
 }
 
-func NewVariable(name t.Token) *VarExpr {
+func NewVarExpr(name t.Token) *VarExpr {
 	return &VarExpr{
 		Name: name,
 	}
