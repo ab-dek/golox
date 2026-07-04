@@ -135,3 +135,14 @@ print "The " + this.flavor + " cake is " + adjective + "!";
 var cake = Cake();
 cake.flavor = "German chocolate";
 cake.taste();
+
+// print this;
+
+class Foo {
+init() {
+print this;
+return "something else";
+}
+}
+var foo = Foo();
+print foo.init();

@@ -95,7 +95,7 @@ func (i *Interpreter) VisitClassStmt(stmt ast.ClassStmt) any {
 
 	methods := make(map[string]*Function)
 	for _, method := range stmt.Methods {
-		function := NewFunction(method, i.env)
+		function := NewFunction(method, i.env, method.Name.Lexeme == "init")
 		methods[method.Name.Lexeme] = function
 	}
 	class := newClass(stmt.Name.Lexeme, methods)
@@ -143,7 +143,7 @@ func (i *Interpreter) VisitIf(stmt ast.IfStmt) any {
 }
 
 func (i *Interpreter) VisitFuncStmt(stmt ast.FuncStmt) any {
-	function := NewFunction(stmt, i.env)
+	function := NewFunction(stmt, i.env, false)
 	i.env.Define(stmt.Name.Lexeme, function)
 	return nil
 }
@@ -367,7 +367,7 @@ func (i *Interpreter) VisitTernary(expr ast.Ternary) any {
 }
 
 func (i *Interpreter) VisitFuncExpr(expr ast.FuncExpr) any {
-	return NewFunction(ast.FuncStmt{Function: expr}, i.env)
+	return NewFunction(ast.FuncStmt{Function: expr}, i.env, false)
 }
 
 func (i *Interpreter) isTruthy(value any) bool {

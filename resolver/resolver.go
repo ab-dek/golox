@@ -15,19 +15,29 @@ type functionType int
 const (
 	NONE functionType = iota
 	FUNCTION
+	INITIALIZER
 	METHOD
+)
+
+type classType int
+
+const (
+	CLASS_NONE classType = iota
+	CLASS
 )
 
 type Resolver struct {
 	interpreter     *i.Interpreter
 	scopes          s.Stack[scope]
 	currentFunction functionType
+	currentClass    classType
 }
 
 func NewResolver(interpreter *i.Interpreter) *Resolver {
 	return &Resolver{
 		interpreter:     interpreter,
 		currentFunction: NONE,
+		currentClass:    CLASS_NONE,
 	}
 }
 
@@ -55,20 +65,31 @@ func (r *Resolver) VisitBlock(stmt ast.Block) any {
 }
 
 func (r *Resolver) VisitClassStmt(stmt ast.ClassStmt) any {
+	enclosingClass := r.currentClass
+	r.currentClass = CLASS
+
 	r.declare(stmt.Name)
 	r.define(stmt.Name)
 
 	r.beginScope()
 	scope, _ := r.scopes.Peek()
 	scope["this"] = &varInfo{
-		token:    *t.NewToken(t.IDENTIFIER, "this", nil, 0),
+		// token:    *t.NewToken(t.IDENTIFIER, "this", nil, 0),
 		resolved: true,
 	}
 
 	for _, method := range stmt.Methods {
-		r.resolveFunction(method.Function, METHOD)
+		declaration := METHOD
+
+		if method.Name.Lexeme == "init" {
+			declaration = INITIALIZER
+		}
+
+		r.resolveFunction(method.Function, declaration)
 	}
 	r.endScope()
+
+	r.currentClass = enclosingClass
 
 	return nil
 }
@@ -125,6 +146,10 @@ func (r *Resolver) VisitReturn(stmt ast.ReturnStmt) any {
 	}
 
 	if stmt.Value != nil {
+		if r.currentFunction == INITIALIZER {
+			errMsg := errs.ParseError(stmt.Keyword, "Can't return a value from an initializer.")
+			errs.ReportError(errMsg)
+		}
 		r.resolveExpr(stmt.Value)
 	}
 
@@ -227,6 +252,12 @@ func (r *Resolver) VisitSet(expr ast.Set) any {
 
 // VisitThis implements [ast.ExprVisitor].
 func (r *Resolver) VisitThis(expr ast.This) any {
+	if r.currentClass == CLASS_NONE {
+		errMsg := errs.ParseError(expr.Keyword, "Can't use 'this' outside of a class.")
+		errs.ReportError(errMsg)
+		return nil
+	}
+
 	r.resolveLocal(expr, expr.Keyword)
 	return nil
 }

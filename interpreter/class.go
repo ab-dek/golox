@@ -18,11 +18,23 @@ func newClass(name string, methods map[string]*Function) *class {
 
 func (c class) call(i *Interpreter, arguments []any) any {
 	instance := newInstance(c)
+
+	initializer := c.FindMethod("init")
+
+	if initializer != nil {
+		initializer.bind(instance).call(i, arguments)
+	}
+
 	return instance
 }
 
 func (c class) arity() int {
-	return 0
+	initializer := c.FindMethod("init")
+	if initializer == nil {
+		return 0
+	}
+
+	return initializer.arity()
 }
 
 func (c class) FindMethod(name string) *Function {
