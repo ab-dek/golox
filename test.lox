@@ -153,3 +153,10 @@ class Math {
   }
 }
 print Math.square(3);
+
+class Doughnut {
+}
+
+class BostonCream < Doughnut {
+// Boston Cream-specific stuff...
+}

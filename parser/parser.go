@@ -229,10 +229,10 @@ func (p *Parser) block() []ast.Stmt {
 func (p *Parser) class() ast.Stmt {
 	name := p.consume(t.IDENTIFIER, "Expect a class name.")
 
-	var superclass ast.VarExpr
+	var superclass *ast.VarExpr
 	if p.match(t.LESS) {
 		p.consume(t.IDENTIFIER, "Expect superclass name.")
-		superclass = *ast.NewVarExpr(p.previous())
+		superclass = ast.NewVarExpr(p.previous())
 	}
 
 	p.consume(t.LEFT_BRACE, "Expect '{' before class body.")
@@ -251,7 +251,7 @@ func (p *Parser) class() ast.Stmt {
 
 	p.consume(t.RIGHT_BRACE, "Expect '}' after class body.")
 
-	return ast.NewClassStmt(name, &superclass, methods)
+	return ast.NewClassStmt(name, superclass, methods)
 }
 
 func (p *Parser) expressionStatement() ast.Stmt {

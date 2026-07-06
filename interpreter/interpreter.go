@@ -94,12 +94,12 @@ func (i *Interpreter) VisitClassStmt(stmt ast.ClassStmt) any {
 	var superclass *class
 	if stmt.Superclass != nil {
 		value := i.evaluate(stmt.Superclass)
-		superclassValue, ok := value.(class)
+		superclassValue, ok := value.(*class)
 		if !ok {
 			errMsg := errs.RuntimeError(stmt.Superclass.Name, "Superclass must be a class.")
 			panic(errMsg)
 		}
-		superclass = &superclassValue
+		superclass = superclassValue
 	}
 
 	i.env.Define(stmt.Name.Lexeme, nil)
