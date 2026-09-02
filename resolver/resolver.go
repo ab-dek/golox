@@ -24,6 +24,7 @@ type classType int
 const (
 	CLASS_NONE classType = iota
 	CLASS
+	SUBCLASS
 )
 
 type Resolver struct {
@@ -78,7 +79,17 @@ func (r *Resolver) VisitClassStmt(stmt ast.ClassStmt) any {
 	}
 
 	if stmt.Superclass != nil {
+		r.currentClass = SUBCLASS
 		r.resolveExpr(stmt.Superclass)
+	}
+
+	if stmt.Superclass != nil {
+		r.beginScope()
+		scope, _ := r.scopes.Peek()
+		scope["super"] = &varInfo{
+			token:    *t.NewToken(t.IDENTIFIER, "super", nil, 0),
+			resolved: true,
+		}
 	}
 
 	r.beginScope()
@@ -107,6 +118,10 @@ func (r *Resolver) VisitClassStmt(stmt ast.ClassStmt) any {
 		}
 	}
 	r.endScope()
+
+	if stmt.Superclass != nil {
+		r.endScope()
+	}
 
 	r.currentClass = enclosingClass
 
@@ -266,6 +281,20 @@ func (r *Resolver) VisitSet(expr ast.Set) any {
 	r.resolveExpr(expr.Value)
 	r.resolveExpr(expr.Object)
 
+	return nil
+}
+
+// VisitSuper implements [ast.ExprVisitor].
+func (r *Resolver) VisitSuper(expr ast.Super) any {
+	if r.currentClass == CLASS_NONE {
+		errMsg := errs.ParseError(expr.Keyword, "Can't use 'super' outside of a class.")
+		errs.ReportError(errMsg)
+	} else if r.currentClass != SUBCLASS {
+		errMsg := errs.ParseError(expr.Keyword, "Cant use 'super' in a class with no superclass.")
+		errs.ReportError(errMsg)
+	}
+
+	r.resolveLocal(expr, expr.Keyword)
 	return nil
 }
 

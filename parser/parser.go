@@ -46,7 +46,7 @@ factor→ unary ( ( "/" | "*" ) unary )* ;
 unary→ ( "!" | "-" ) unary | call ;
 call→ primary ( "(" arguments? ")" | "." IDENTIFIER )* ;
 argument→ expression ( "," expression )* ;
-primary→ NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" | IDENTIFIER | "fun" funExpr ;
+primary→ NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" | IDENTIFIER | "fun" funExpr | "super" "." IDENTIFIER;
 */
 
 type Parser struct {
@@ -537,6 +537,11 @@ func (p *Parser) primary() ast.Expr {
 		return ast.NewLiteral(nil)
 	case p.match(t.NUMBER, t.STRING):
 		return ast.NewLiteral(p.previous().Literal)
+	case p.match(t.SUPER):
+		keyword := p.previous()
+		p.consume(t.DOT, "Expect '.' after 'super'")
+		method := p.consume(t.IDENTIFIER, "Expect superclass method name.")
+		return ast.NewSuper(keyword, method)
 	case p.match(t.THIS):
 		return ast.NewThis(p.previous())
 	case p.match(t.IDENTIFIER):

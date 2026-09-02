@@ -48,6 +48,10 @@ func (r *RPN) VisitSet(expr Set) any {
 	panic("unimplemented")
 }
 
+func (r *RPN) VisitSuper(expr Super) any {
+	panic("unimplemented")
+}
+
 func (r *RPN) VisitThis(expr This) any {
 	panic("unimplemented")
 }

@@ -104,6 +104,11 @@ func (i *Interpreter) VisitClassStmt(stmt ast.ClassStmt) any {
 
 	i.env.Define(stmt.Name.Lexeme, nil)
 
+	if stmt.Superclass != nil {
+		i.env = e.NewEnv(i.env)
+		i.env.Define("super", superclass)
+	}
+
 	methods := make(map[string]*Function)
 	staticMethods := make(map[string]*Function)
 	for _, method := range stmt.Methods {
@@ -116,6 +121,10 @@ func (i *Interpreter) VisitClassStmt(stmt ast.ClassStmt) any {
 		}
 	}
 	class := newClass(stmt.Name.Lexeme, methods, staticMethods, superclass)
+
+	if superclass != nil {
+		i.env = i.env.Enclosing
+	}
 
 	i.env.Assign(stmt.Name, class)
 	return nil
@@ -310,6 +319,22 @@ func (i *Interpreter) VisitSet(expr ast.Set) any {
 
 	errMsg := errs.RuntimeError(expr.Name, "Only instances have fields.")
 	panic(errMsg)
+}
+
+func (i *Interpreter) VisitSuper(expr ast.Super) any {
+	distance := i.locals[expr]
+	superclass := i.env.GetAt(distance, "super").(*class)
+
+	object := i.env.GetAt(distance-1, "this").(*instance)
+
+	method := superclass.FindMethod(expr.Method.Lexeme)
+
+	if method == nil {
+		errMsg := errs.RuntimeError(expr.Method, fmt.Sprintf("Undefined property '%s'.", expr.Method.Lexeme))
+		panic(errMsg)
+	}
+
+	return method.bind(object)
 }
 
 func (i *Interpreter) VisitThis(expr ast.This) any {

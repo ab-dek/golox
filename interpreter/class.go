@@ -46,12 +46,20 @@ func (c class) FindMethod(name string) *Function {
 		return method
 	}
 
+	if c.superclass != nil {
+		return c.superclass.FindMethod(name)
+	}
+
 	return nil
 }
 
 func (c class) FindStaticMethod(name string) *Function {
 	if method, ok := c.staticMethods[name]; ok {
 		return method
+	}
+
+	if c.superclass != nil {
+		return c.superclass.FindStaticMethod(name)
 	}
 
 	return nil

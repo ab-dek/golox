@@ -15,6 +15,7 @@ type ExprVisitor interface {
 	VisitLiteral(expr Literal) any
 	VisitLogical(expr Logical) any
 	VisitSet(expr Set) any
+	VisitSuper(expr Super) any
 	VisitThis(expr This) any
 	VisitUnary(expr Unary) any
 	VisitCall(expr Call) any
@@ -154,6 +155,22 @@ func NewSet(object, value Expr, name t.Token) *Set {
 
 func (s Set) Accept(visitor ExprVisitor) any {
 	return visitor.VisitSet(s)
+}
+
+type Super struct {
+	Keyword t.Token
+	Method  t.Token
+}
+
+func NewSuper(keyword, method t.Token) *Super {
+	return &Super{
+		Keyword: keyword,
+		Method:  method,
+	}
+}
+
+func (s Super) Accept(visitor ExprVisitor) any {
+	return visitor.VisitSuper(s)
 }
 
 type This struct {

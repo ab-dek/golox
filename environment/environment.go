@@ -8,13 +8,13 @@ import (
 )
 
 type Environment struct {
-	enclosing *Environment
+	Enclosing *Environment
 	values    map[string]any
 }
 
 func NewEnv(enclosing *Environment) *Environment {
 	return &Environment{
-		enclosing: enclosing,
+		Enclosing: enclosing,
 		values:    make(map[string]any),
 	}
 }
@@ -29,8 +29,8 @@ func (e *Environment) Assign(name t.Token, value any) {
 		return
 	}
 
-	if e.enclosing != nil {
-		e.enclosing.Assign(name, value)
+	if e.Enclosing != nil {
+		e.Enclosing.Assign(name, value)
 		return
 	}
 
@@ -47,8 +47,8 @@ func (e *Environment) Get(name t.Token) any {
 		return value
 	}
 
-	if e.enclosing != nil {
-		return e.enclosing.Get(name)
+	if e.Enclosing != nil {
+		return e.Enclosing.Get(name)
 	}
 
 	errMsg := errs.RuntimeError(name, fmt.Sprintf("Undefined variable %s. \n", name.Lexeme))
@@ -62,7 +62,7 @@ func (e *Environment) GetAt(distance int, name string) any {
 func (e *Environment) ancestor(distance int) *Environment {
 	env := e
 	for range distance {
-		env = env.enclosing
+		env = env.Enclosing
 	}
 
 	return env
